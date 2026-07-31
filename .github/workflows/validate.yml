@@ -1,0 +1,22 @@
+name: Validate
+on: [push, pull_request]
+permissions: {contents: read}
+jobs:
+  public-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit repository
+        run: python3 scripts/audit-public-repository.py
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Shellcheck
+        run: shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
+      - name: Validate YAML
+        run: ruby -e 'require "yaml"; Dir["**/*.{yml,yaml}", ".github/**/*.{yml,yaml}"].uniq.each { |f| YAML.parse_file(f) }'
+      - name: Render Compose
+        run: docker compose --env-file .env.example -f compose.yml config --quiet
+      - name: Verify version pinning and no builds
+        run: |
+          ! grep -R --include='compose*.yml' -E '^\s*build:' .
+          ! grep -R --include='compose*.yml' -E 'image:.*:latest([[:space:]]|$)' .
