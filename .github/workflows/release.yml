@@ -23,7 +23,7 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with: {path: dist/stage, output-file: dist/sbom.spdx.json, upload-artifact: false}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: {name: flowcast-community-release-candidate, path: "dist/*", if-no-files-found: error}
       - name: Publication gate
         run: echo 'Artifacts only; no GitHub release is published until OCI images are qualified.'
