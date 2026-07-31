@@ -1,0 +1,7 @@
+# Operator-only override. Mounting Docker's socket grants host-level control.
+services:
+  control:
+    environment:
+      FLOWCAST_DOCKER_CONTROL_ENABLED: ${FLOWCAST_DOCKER_CONTROL_ENABLED:-false}
+    volumes:
+      - ${FLOWCAST_DOCKER_SOCKET:-/dev/null}:/var/run/docker.sock

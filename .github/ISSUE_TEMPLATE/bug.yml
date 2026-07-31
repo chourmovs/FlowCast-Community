@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible, sanitized Community problem
+body:
+  - type: markdown
+    attributes:
+      value: "Never include secrets, .env files, databases, media, or private URLs."
+  - type: input
+    id: version
+    attributes: {label: FlowCast version}
+    validations: {required: true}
+  - type: textarea
+    id: system
+    attributes: {label: Sanitized system information, description: "OS, architecture, Docker/Compose versions, and redacted doctor output"}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes: {label: Reproduction steps}
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes: {label: Expected and actual behavior}
+    validations: {required: true}

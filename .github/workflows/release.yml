@@ -1,0 +1,29 @@
+name: Prepare release artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      version: {description: Semver to package, required: true, type: string}
+permissions: {contents: read}
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/audit-public-repository.py
+      - name: Build deterministic archives
+        env: {VERSION: "${{ inputs.version }}"}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/stage
+          git archive HEAD | tar -x -C dist/stage
+          for arch in amd64 arm64; do
+            tar --sort=name --mtime='UTC 2026-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/flowcast-community-v${VERSION}-${arch}.tar.gz" -C dist/stage .
+          done
+          (cd dist && sha256sum flowcast-community-*.tar.gz > checksums.sha256)
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with: {path: dist/stage, output-file: dist/sbom.spdx.json, upload-artifact: false}
+      - uses: actions/upload-artifact@v4
+        with: {name: flowcast-community-release-candidate, path: "dist/*", if-no-files-found: error}
+      - name: Publication gate
+        run: echo 'Artifacts only; no GitHub release is published until OCI images are qualified.'
