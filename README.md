@@ -43,4 +43,10 @@ After startup, open `http://localhost:8080`; Icecast is at `http://localhost:801
 - [Architecture](docs/community/architecture.md)
 - [Community versus Pro](docs/community/community-vs-pro.md)
 
+## Maintainer release process
+
+Community beta releases follow the
+[release checklist](RELEASE_CHECKLIST.md) and the
+[detailed operator runbook](docs/release/community-beta-release.md).
+
 The optional `--docker-control` mode mounts the Docker socket and therefore grants effectively root-level host control. It is off by default. Support is best effort; never share `.env`, credentials, media, or databases in an issue.
