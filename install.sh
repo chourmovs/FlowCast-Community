@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${FLOWCAST_VERSION:-0.1.0-rc.1}"
+VERSION="${FLOWCAST_VERSION:-0.1.0-rc.2}"
 INSTALL_DIR="${FLOWCAST_HOME:-/opt/flowcast}"
 REPOSITORY="${FLOWCAST_RELEASE_REPOSITORY:-chourmovs/FlowCast-Community}"
 RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"

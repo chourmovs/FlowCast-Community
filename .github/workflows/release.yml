@@ -6,7 +6,7 @@ on:
       version:
         description: Release candidate version
         required: true
-        default: 0.1.0-rc.1
+        default: 0.1.0-rc.2
         type: string
       publish:
         description: Create the public GitHub prerelease
@@ -33,6 +33,7 @@ jobs:
       - name: Audit and test public repository
         run: |
           python3 scripts/audit-public-repository.py
+          python3 scripts/audit-runtime-contract.py
           python3 -m unittest discover -s tests -v
           shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
           docker compose --env-file .env.example -f compose.yml config --quiet

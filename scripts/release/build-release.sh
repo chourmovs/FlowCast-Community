@@ -10,6 +10,19 @@ jq -n --arg version "$VERSION" --arg commit "$(git -C "$ROOT" rev-parse HEAD)" -
   '{schema_version:1,version:$version,git_commit:$commit,git_tag:$tag,platforms:["linux/amd64"],archive:{filename:("flowcast-community-v"+$version+".tar.gz"),sha256:"pending"},images_lock:"images.lock"}' >"$STAGE/release-manifest.json"
 ARCHIVE="$DIST/flowcast-community-v$VERSION.tar.gz"
 tar --sort=name --mtime="@$(git -C "$ROOT" log -1 --format=%ct)" --owner=0 --group=0 --numeric-owner -czf "$ARCHIVE" -C "$STAGE" .
+
+# Never ship a stale runtime assembled from anything other than this checkout.
+EXTRACTED="$(mktemp -d)"
+trap 'rm -rf "$EXTRACTED"' EXIT
+tar -xzf "$ARCHIVE" -C "$EXTRACTED"
+for path in compose.yml compose.docker-control.yml install.sh .env.example scripts/community/doctor.sh; do
+  cmp "$ROOT/$path" "$EXTRACTED/$path"
+done
+grep -Fq '/usr/local/bin/flowcast-analyzer' "$EXTRACTED/compose.yml"
+grep -Fq -- '--healthcheck' "$EXTRACTED/compose.yml"
+! grep -Fq 'http://localhost:8091/health' "$EXTRACTED/compose.yml"
+! grep -Fq 'http://localhost:8092/health' "$EXTRACTED/compose.yml"
+
 sha256sum "$ARCHIVE" | sed "s#  $DIST/#  #" >"$DIST/checksums.sha256"
 digest="$(cut -d' ' -f1 "$DIST/checksums.sha256")"
 jq --arg digest "$digest" '.archive.sha256=$digest' "$STAGE/release-manifest.json" >"$DIST/release-manifest.json"

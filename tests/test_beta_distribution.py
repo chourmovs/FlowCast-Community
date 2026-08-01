@@ -11,7 +11,7 @@ class InstallerContractTests(unittest.TestCase):
         cls.install = (ROOT / "install.sh").read_text()
 
     def test_default_and_override_version(self):
-        self.assertIn('VERSION="${FLOWCAST_VERSION:-0.1.0-rc.1}"', self.install)
+        self.assertIn('VERSION="${FLOWCAST_VERSION:-0.1.0-rc.2}"', self.install)
         self.assertIn('--version)', self.install)
 
     def test_amd64_only(self):
