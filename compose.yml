@@ -5,64 +5,17 @@ x-common: &common
   networks: [flowcast-internal]
 
 services:
-  control:
-    <<: *common
-    image: ghcr.io/chourmovs/flowcast-control:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
-    environment:
-      FLOWCAST_AUTH_ENABLED: ${FLOWCAST_AUTH_ENABLED:-true}
-      FLOWCAST_ENGINE_URL: http://engine:8081
-      FLOWCAST_ANALYZER_URL: http://analyzer:8082
-      FLOWCAST_BLISS_URL: http://bliss:8083
-      FLOWCAST_DOCKER_CONTROL_ENABLED: ${FLOWCAST_DOCKER_CONTROL_ENABLED:-false}
-    ports:
-      - "${FLOWCAST_HTTP_PORT:-8080}:8080"
+  storage-init:
+    image: alpine:3.20
+    restart: "no"
+    command: [sh, -c, "mkdir -p /catalog /media /settings /history /analysis && chmod 0770 /catalog /media /settings /history /analysis"]
     volumes:
-      - flowcast-data:/var/lib/flowcast
-    depends_on:
-      engine: {condition: service_healthy}
-    healthcheck:
-      test: [CMD, curl, -fsS, http://localhost:8080/health]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-  engine:
-    <<: *common
-    image: ghcr.io/chourmovs/flowcast-engine:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
-    environment:
-      ANALYZER_URL: http://analyzer:8082
-      BLISS_URL: http://bliss:8083
-      ICECAST_URL: http://icecast:8000
-      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?set ICECAST_SOURCE_PASSWORD}
-    volumes:
+      - flowcast-catalog:/catalog
       - flowcast-media:/media
-      - flowcast-data:/var/lib/flowcast
-    depends_on:
-      icecast: {condition: service_healthy}
-      analyzer: {condition: service_healthy}
-      bliss: {condition: service_healthy}
-    healthcheck:
-      test: [CMD, curl, -fsS, http://localhost:8081/health]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-  analyzer:
-    <<: *common
-    image: ghcr.io/chourmovs/flowcast-analyzer:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
-    healthcheck:
-      test: [CMD, curl, -fsS, http://localhost:8082/health]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-  bliss:
-    <<: *common
-    image: ghcr.io/chourmovs/flowcast-bliss:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
-    healthcheck:
-      test: [CMD, curl, -fsS, http://localhost:8083/health]
-      interval: 15s
-      timeout: 5s
-      retries: 10
+      - flowcast-settings:/settings
+      - flowcast-engine-history:/history
+      - flowcast-analysis:/analysis
+
   icecast:
     <<: *common
     image: ghcr.io/chourmovs/flowcast-icecast:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
@@ -70,19 +23,92 @@ services:
       ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?set ICECAST_SOURCE_PASSWORD}
       ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD:?set ICECAST_RELAY_PASSWORD}
       ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD:?set ICECAST_ADMIN_PASSWORD}
-    volumes:
-      - icecast-logs:/var/log/icecast
+    ports: ["${FLOWCAST_STREAM_PORT:-8010}:8000"]
     healthcheck:
       test: [CMD, curl, -fsS, http://localhost:8000/status-json.xsl]
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 20
+
+  bliss:
+    <<: *common
+    image: ghcr.io/chourmovs/flowcast-bliss:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
+    volumes: [flowcast-media:/media:ro]
+    healthcheck:
+      test: [CMD, curl, -fsS, http://localhost:8090/health]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  audio-daemon:
+    <<: *common
+    image: ghcr.io/chourmovs/flowcast-analyzer:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
+    volumes:
+      - flowcast-media:/media:ro
+      - flowcast-analysis:/analysis
+    depends_on:
+      storage-init: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, curl, -fsS, http://localhost:8091/health]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  engine:
+    <<: *common
+    image: ghcr.io/chourmovs/flowcast-engine:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
+    environment:
+      AUDIO_DAEMON_URL: http://audio-daemon:8091
+      BLISS_URL: http://bliss:8090
+      ICECAST_URL: http://icecast:8000
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?set ICECAST_SOURCE_PASSWORD}
+    volumes:
+      - flowcast-media:/media
+      - flowcast-settings:/settings
+      - flowcast-engine-history:/history
+      - flowcast-analysis:/analysis
+    depends_on:
+      storage-init: {condition: service_completed_successfully}
+      icecast: {condition: service_healthy}
+      bliss: {condition: service_healthy}
+      audio-daemon: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, curl, -fsS, http://localhost:8092/health]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  control:
+    <<: *common
+    image: ghcr.io/chourmovs/flowcast-control:${FLOWCAST_VERSION:?set FLOWCAST_VERSION}
+    environment:
+      FLOWCAST_AUTH_ENABLED: ${FLOWCAST_AUTH_ENABLED:-true}
+      FLOWCAST_PUBLIC_URL: ${FLOWCAST_PUBLIC_URL:-http://localhost:8080}
+      FLOWCAST_ENGINE_URL: http://engine:8092
+      FLOWCAST_AUDIO_DAEMON_URL: http://audio-daemon:8091
+      FLOWCAST_BLISS_URL: http://bliss:8090
+      FLOWCAST_DOCKER_CONTROL_ENABLED: ${FLOWCAST_DOCKER_CONTROL_ENABLED:-false}
+    ports: ["${FLOWCAST_HTTP_PORT:-8080}:8088"]
+    volumes:
+      - flowcast-catalog:/catalog
+      - flowcast-settings:/settings
+      - flowcast-analysis:/analysis
+    depends_on:
+      storage-init: {condition: service_completed_successfully}
+      engine: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, curl, -fsS, http://localhost:8088/api/health]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
 
 networks:
   flowcast-internal:
-    internal: true
 
 volumes:
-  flowcast-data:
+  flowcast-catalog:
   flowcast-media:
-  icecast-logs:
+  flowcast-settings:
+  flowcast-engine-history:
+  flowcast-analysis:
