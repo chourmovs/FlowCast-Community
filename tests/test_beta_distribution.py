@@ -57,6 +57,14 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertIn(image, script)
         self.assertIn('linux', script)
         self.assertIn('amd64', script)
+        self.assertIn('attempt in 1 2 3', script)
+        self.assertIn("{{json .Image}}", script)
+
+    def test_workflow_installs_buildx_before_inspection(self):
+        workflow = (ROOT / '.github/workflows/release.yml').read_text()
+        setup = workflow.index('docker/setup-buildx-action@v3')
+        inspect = workflow.index('scripts/release/inspect-images.sh')
+        self.assertLess(setup, inspect)
 
 
 if __name__ == '__main__':

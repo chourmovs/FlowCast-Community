@@ -37,6 +37,8 @@ jobs:
           shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
           docker compose --env-file .env.example -f compose.yml config --quiet
           docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Inspect public linux/amd64 images anonymously
         env:
           VERSION: ${{ inputs.version }}
