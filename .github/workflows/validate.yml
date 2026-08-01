@@ -7,7 +7,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Audit repository
-        run: python3 scripts/audit-public-repository.py
+        run: |
+          python3 scripts/audit-public-repository.py
+          python3 scripts/audit-runtime-contract.py
       - name: Unit tests
         run: python3 -m unittest discover -s tests -v
       - name: Shellcheck
@@ -15,7 +17,9 @@ jobs:
       - name: Validate YAML
         run: ruby -e 'require "yaml"; Dir["**/*.{yml,yaml}", ".github/**/*.{yml,yaml}"].uniq.each { |f| YAML.parse_file(f) }'
       - name: Render Compose
-        run: docker compose --env-file .env.example -f compose.yml config --quiet
+        run: |
+          docker compose --env-file .env.example -f compose.yml config --quiet
+          docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
       - name: Verify version pinning and no builds
         run: |
           ! grep -R --include='compose*.yml' -E '^\s*build:' .

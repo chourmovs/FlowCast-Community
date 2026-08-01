@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-VERSION="${1:-0.1.0-rc.1}"; RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"
+VERSION="${1:-0.1.0-rc.2}"; RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"
 [[ -n "$RELEASE_BASE_URL" ]] || { echo 'Set FLOWCAST_RELEASE_BASE_URL to a release asset directory URL.' >&2; exit 1; }
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"; HOME_DIR="$(mktemp -d)"; trap 'rm -rf "$HOME_DIR"' EXIT
 "$ROOT/install.sh" --version "$VERSION" --install-dir "$HOME_DIR/flowcast" --release-base-url "$RELEASE_BASE_URL" --no-start --non-interactive
