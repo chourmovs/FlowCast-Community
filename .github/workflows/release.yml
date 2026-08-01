@@ -1,29 +1,76 @@
-name: Prepare release artifacts
+name: Community prerelease
+
 on:
   workflow_dispatch:
     inputs:
-      version: {description: Semver to package, required: true, type: string}
-permissions: {contents: read}
+      version:
+        description: Release candidate version
+        required: true
+        default: 0.1.0-rc.1
+        type: string
+      publish:
+        description: Create the public GitHub prerelease
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
 jobs:
-  package:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: python3 scripts/audit-public-repository.py
-      - name: Build deterministic archives
-        env: {VERSION: "${{ inputs.version }}"}
+        with: {fetch-depth: 0}
+      - name: Validate release request
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          mkdir -p dist/stage
-          git archive HEAD | tar -x -C dist/stage
-          for arch in amd64 arm64; do
-            tar --sort=name --mtime='UTC 2026-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/flowcast-community-v${VERSION}-${arch}.tar.gz" -C dist/stage .
-          done
-          (cd dist && sha256sum flowcast-community-*.tar.gz > checksums.sha256)
+          [[ "$GITHUB_REF" == refs/heads/main ]] || { echo 'Releases must run from main'; exit 1; }
+          [[ "$VERSION" =~ ^0\.1\.0-rc\.[0-9]+$ ]] || { echo 'Version must match 0.1.0-rc.<number>'; exit 1; }
+          ! git rev-parse "v$VERSION" >/dev/null 2>&1 || { echo "Tag v$VERSION already exists"; exit 1; }
+      - name: Audit and test public repository
+        run: |
+          python3 scripts/audit-public-repository.py
+          python3 -m unittest discover -s tests -v
+          shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
+          docker compose --env-file .env.example -f compose.yml config --quiet
+          docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
+      - name: Inspect public linux/amd64 images anonymously
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          mkdir -p dist
+          scripts/release/inspect-images.sh "$VERSION" > dist/images.lock
+      - name: Build deterministic archive and manifest
+        env:
+          VERSION: ${{ inputs.version }}
+        run: scripts/release/build-release.sh "$VERSION"
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
-        with: {path: dist/stage, output-file: dist/sbom.spdx.json, upload-artifact: false}
+        with:
+          path: dist/stage
+          output-file: dist/sbom.spdx.json
+          upload-artifact: false
       - uses: actions/upload-artifact@v7
-        with: {name: flowcast-community-release-candidate, path: "dist/*", if-no-files-found: error}
-      - name: Publication gate
-        run: echo 'Artifacts only; no GitHub release is published until OCI images are qualified.'
+        with:
+          name: flowcast-community-v${{ inputs.version }}
+          if-no-files-found: error
+          path: |
+            dist/flowcast-community-v${{ inputs.version }}.tar.gz
+            dist/checksums.sha256
+            dist/images.lock
+            dist/release-manifest.json
+            dist/sbom.spdx.json
+      - name: Publish public prerelease
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --prerelease --title "FlowCast Community v$VERSION" \
+            --notes "Beta preview for linux/amd64 only; not production-grade." \
+            "dist/flowcast-community-v$VERSION.tar.gz" dist/checksums.sha256 dist/images.lock dist/release-manifest.json dist/sbom.spdx.json

@@ -1,59 +1,46 @@
-# FlowCast Community Preview
+# FlowCast Community — Beta preview
 
-FlowCast is a self-hosted radio control plane and playout stack for technical broadcasters, self-hosters, and early adopters. **Community Preview is not yet production-qualified. Back up your data before every upgrade.**
+FlowCast Community is a self-hosted radio control and playout stack for evaluation by technical broadcasters and self-hosters. **This beta preview is not production-grade.** Back up before every change.
 
-The public repository contains the control-plane distribution, operator tooling, and documented runtime contracts. Audio engines are distributed as versioned OCI images; their proprietary Rust sources are not included.
+## Requirements
 
-## Features
-
-- Browser-based station control and status monitoring
-- Automated playout through containerized engine, analyzer, Bliss, and Icecast services
-- Version-pinned Docker Compose deployment for amd64 and arm64 Linux
-- Update, backup, restore, uninstall, and diagnostic tools
-- Community operation without a licence; optional Pro capabilities degrade cleanly
+- **linux/amd64 only** (ARM64 is not published for this beta)
+- Docker Engine and Docker Compose v2
+- 4 GB RAM and 10 GB free disk minimum
+- host ports 8080 (interface) and 8010 (Icecast)
 
 ## Quick start
 
-Prerequisites: Linux, Docker Engine with Compose v2, 4 GB RAM, 10 GB free disk, and TCP port 8080.
-
-Review the script before running it. The recommended version-pinned installation is:
+Install the versioned public release into `/opt/flowcast`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0/install.sh | bash
+curl -fsSL \
+  https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.1/install.sh \
+  | sudo bash -s -- --version 0.1.0-rc.1
 ```
 
-To follow the development branch instead:
+The installer downloads the release archive and metadata, verifies its SHA-256 checksum and version, generates three independent secrets, pulls the public GHCR images, and waits up to five minutes for every service. It never installs Docker and never invokes `sudo` itself.
+
+### Review first
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/main/install.sh | bash
+curl -fsSLO \
+  https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.1/install.sh
+
+less install.sh
+
+sudo bash install.sh --version 0.1.0-rc.1
 ```
 
-The installer verifies release checksums, creates three independent Icecast secrets, and stores configuration at `/opt/flowcast` by default. See the [quick start](docs/community/quick-start.md) for a review-first installation.
+After startup, open `http://localhost:8080`; Icecast is at `http://localhost:8010`. See the [quick start](docs/community/quick-start.md) and [configuration guide](docs/community/configuration.md).
 
-## Architecture
+## Operations and documentation
 
-The Python control plane communicates over documented HTTP/JSON contracts with versioned Rust engine images. It does not import or compile private engine sources. See [architecture](docs/community/architecture.md) and the [runtime contract](docs/community/runtime-contract.md).
-
-## Documentation
-
-- [Configuration](docs/community/configuration.md)
 - [Backup and restore](docs/community/backup-restore.md)
 - [Update and rollback](docs/community/update-rollback.md)
 - [Troubleshooting](docs/community/troubleshooting.md)
 - [Supported platforms](docs/community/supported-platforms.md)
+- [Architecture](docs/community/architecture.md)
 - [Community versus Pro](docs/community/community-vs-pro.md)
-- [Known limitations](docs/community/known-limitations.md)
 
-## Community and Pro
-
-Community starts and broadcasts without a licence or a mandatory licence-server call. Pro UI affordances may be visible but remain disabled unless explicitly configured with valid credentials. No licence credential ships here. Details and transmitted metadata are documented in [Community versus Pro](docs/community/community-vs-pro.md).
-
-## Screenshots
-
-> **Placeholder:** verified Community Preview screenshots will be added after the public OCI images complete release qualification.
-
-## Limitations and support
-
-OCI images may not yet be publicly available for every architecture. Endurance qualification, unattended rollback, and production support SLAs are not complete. Support is best effort through GitHub Discussions and sanitized issues; never attach `.env`, credentials, station media, or database files.
-
-Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). The repository is licensed under the [MIT License](LICENSE); distributed images may contain separately licensed components.
+The optional `--docker-control` mode mounts the Docker socket and therefore grants effectively root-level host control. It is off by default. Support is best effort; never share `.env`, credentials, media, or databases in an issue.
