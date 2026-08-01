@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# shellcheck source=scripts/lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 BACKUP=""
 usage() { echo "Usage: restore.sh --backup FILE [--install-dir DIR] [--dry-run] [--help]"; }

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# shellcheck source=scripts/lib/common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 usage() { echo "Usage: doctor.sh [--install-dir DIR] [--help]"; }
 while (($#)); do case "$1" in --install-dir) FLOWCAST_HOME="$2"; shift 2;; --help|-h) usage; exit 0;; *) die "Unknown option: $1";; esac; done
