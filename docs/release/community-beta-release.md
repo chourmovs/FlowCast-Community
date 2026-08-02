@@ -115,14 +115,29 @@ Une validation invalide est un **NO-GO** : corriger la variable avant toute acti
 - **Résultat attendu :** `flowcast-community-v$FLOWCAST_RELEASE.tar.gz`, `checksums.sha256`, `images.lock`, `release-manifest.json` et `sbom.spdx.json`. L'archive contient au minimum `compose.yml`, `compose.docker-control.yml`, `.env.example`, `install.sh`, `README.md`, `VERSION`, `images.lock`, `release-manifest.json`, `scripts/` et `docs/`. Elle ne contient ni `.env`, ni `.git`, ni sources privées Rust, secrets, tokens ou fichiers temporaires.
 - **Gate :** **GO** si checksums, liste et contenu sont cohérents ; toute absence ou donnée interdite est un **NO-GO**.
 
-### Étape 7 — Publier la prerelease
+### Étape 7 — Qualifier sans publier
+
+La qualification fonctionnelle doit utiliser les artefacts du dry-run (par
+exemple depuis un serveur HTTP privé temporaire passé à l'installateur avec
+`--release-base-url`). Elle doit couvrir les deux installations vierges, le
+mode standard puis le mode `--docker-control`, ainsi que `doctor.sh`, le smoke
+test streaming et une observation d'au moins dix minutes. Consigner chaque
+résultat dans le rapport de release. **Ne pas utiliser `publish: true` pour
+rendre les artefacts installables pendant la qualification.**
+
+Tout `Login failed`, moteur healthy sans mount Icecast, bouton runtime
+inopérant, Docker Control demandé mais indisponible, boucle de redémarrage du
+moteur, flux sans données, divergence de version, perte de données ou secret
+dans les logs impose un **NO-GO**.
+
+### Étape 8 — Publier la prerelease
 
 - **Action / dépôt :** seulement après les deux GO précédents, relancer **Community prerelease** (`.github/workflows/release.yml`).
 - **Paramètres :** `version: $FLOWCAST_RELEASE`, **`publish: true`**.
 - **Résultat attendu :** GitHub Release publique taguée `v$FLOWCAST_RELEASE`, marquée prerelease, annoncée `linux/amd64` et non production-grade, sans tag `latest`, avec les cinq assets obligatoires listés à l'étape 6.
 - **Gate :** **GO** si le workflow est vert et la version est exacte ; sinon **NO-GO**.
 
-### Étape 8 — Vérifier la publication publique
+### Étape 9 — Vérifier la publication publique
 
 - **Action / dépôt :** interroger `FlowCast-Community` avec GitHub CLI :
 
@@ -142,7 +157,7 @@ Une validation invalide est un **NO-GO** : corriger la variable avant toute acti
 
 ## 4. Tester le oneliner
 
-### Étape 9 — Préparer une machine vierge
+### Étape 10 — Préparer une machine vierge
 
 - **Action / dépôt :** sur une machine Linux AMD64 sans installation FlowCast existante, vérifier Docker Engine, Compose v2, `curl`, `openssl`, `sha256sum`, `tar`, 10 Go libres et les ports 8080/8010 disponibles :
 
@@ -157,7 +172,7 @@ Une validation invalide est un **NO-GO** : corriger la variable avant toute acti
 - **Résultat attendu :** tous les prérequis et ports sont disponibles.
 - **Gate :** **GO** si la machine est réellement vierge et conforme ; sinon **NO-GO**.
 
-### Étape 10 — Installer la prerelease
+### Étape 11 — Installer la prerelease
 
 - **Action / dépôt :** installer depuis le tag public de `FlowCast-Community` :
 
@@ -172,7 +187,7 @@ Une validation invalide est un **NO-GO** : corriger la variable avant toute acti
 - **Résultat attendu :** installation dans `/opt/flowcast` sans erreur.
 - **Gate :** sortie non nulle ou installation incomplète = **NO-GO** ; sinon **GO**.
 
-### Étape 11 — Contrôler les services et le test fonctionnel minimal
+### Étape 12 — Contrôler les services et le test fonctionnel minimal
 
 - **Action / dépôt :** sur la machine vierge :
 
@@ -201,7 +216,7 @@ Une validation invalide est un **NO-GO** : corriger la variable avant toute acti
 
 ## 5. Clôturer la release
 
-### Étape 12 — Consigner et annoncer le verdict
+### Étape 13 — Consigner et annoncer le verdict
 
 - **Action / dépôts :** compléter `RELEASE_CHECKLIST.md`, copier et remplir le [rapport](templates/community-release-report.md), avec versions, SHA, liens des trois runs, digests, machine et anomalies.
 - **Workflow / paramètres :** confirmer les résultats de **FlowCast release candidate** (`publish: true`, `publish_arm64: false`) et des deux runs **Community prerelease** (`publish: false`, puis `publish: true`).
