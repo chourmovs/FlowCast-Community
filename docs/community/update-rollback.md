@@ -3,7 +3,7 @@
 Create a backup, review the prerelease notes, then run:
 
 ```bash
-sudo /opt/flowcast/scripts/community/update.sh --version 0.1.0-rc.2
+sudo /opt/flowcast/scripts/community/update.sh --version 0.1.0-rc.x
 ```
 
 The script saves `.env.pre-update`, changes only `FLOWCAST_VERSION`, and runs Compose `pull` and `up -d`; it preserves ports, mode selection, and secrets. Operator scripts automatically add `compose.docker-control.yml` when enabled.
