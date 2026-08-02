@@ -10,7 +10,7 @@ load_env() {
   local key value
   [[ -f "$FLOWCAST_HOME/.env" ]] || die "Missing $FLOWCAST_HOME/.env"
   while IFS='=' read -r key value; do
-    case "$key" in FLOWCAST_VERSION|FLOWCAST_HTTP_PORT|FLOWCAST_STREAM_PORT|FLOWCAST_DOCKER_CONTROL_ENABLED|FLOWCAST_PUBLIC_URL) printf -v "$key" '%s' "$value" ;; esac
+    case "$key" in FLOWCAST_VERSION|FLOWCAST_HTTP_PORT|FLOWCAST_STREAM_PORT|FLOWCAST_DOCKER_CONTROL_ENABLED|FLOWCAST_DOCKER_SOCKET|FLOWCAST_DOCKER_GID|FLOWCAST_PUBLIC_URL) printf -v "$key" '%s' "$value" ;; esac
   done < "$FLOWCAST_HOME/.env"
 }
 build_compose_files() {

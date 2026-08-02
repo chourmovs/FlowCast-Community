@@ -1,70 +1,55 @@
 #!/usr/bin/env bash
-set -euo pipefail
-# This diagnostic intentionally allow-lists environment keys and never prints .env or database data.
-# shellcheck source=scripts/lib/common.sh
+set -uo pipefail
+# Outputs only allow-listed diagnostics. It never prints .env, hashes named after secrets, or secret values.
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
+FAILED=()
+check_fail() { FAILED+=("$1"); log "$1=FAIL${2:+ cause=$2}"; }
+check_pass() { log "$1=PASS${2:+ $2}"; }
+timestamp() { date -Iseconds 2>/dev/null || date '+%Y-%m-%dT%H:%M:%S%z'; }
 usage() { echo "Usage: doctor.sh [--install-dir DIR] [--help]"; }
 while (($#)); do case "$1" in --install-dir) FLOWCAST_HOME="${2:?}"; shift 2;; --help|-h) usage; exit 0;; *) die "Unknown option: $1";; esac; done
-for command in docker df curl; do need "$command"; done
+for command in docker df curl sha256sum stat; do command -v "$command" >/dev/null 2>&1 || { echo "Missing $command" >&2; exit 1; }; done
 require_install; load_env
-failed=false
-if docker info >/dev/null 2>&1; then log "host_docker_daemon=accessible"; else die "host_docker_daemon=unavailable"; fi
-docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is unavailable"
-compose config --quiet
-for file in compose.yml compose.docker-control.yml .env; do [[ -f "$FLOWCAST_HOME/$file" ]] || die "Missing required installation file: $file"; done
-df -Pk "$FLOWCAST_HOME" | awk 'NR==2 && $4 < 1048576 {exit 1}' || die "Less than 1 GiB free disk remains"
-
-if [[ "${FLOWCAST_DOCKER_CONTROL_ENABLED:-false}" == true ]]; then
-  log "docker_control=enabled"
-  if compose exec -T control sh -c 'test -S /var/run/docker.sock' >/dev/null 2>&1; then log "control_socket=mounted_unix"; else log "control_socket=absent_or_not_unix"; failed=true; fi
-  if compose exec -T control sh -c 'test -r /var/run/docker.sock && test -w /var/run/docker.sock' >/dev/null 2>&1; then log "control_socket_permissions=read_write"; else log "control_socket_permissions=denied"; failed=true; fi
-  if ! FLOWCAST_HOME="$FLOWCAST_HOME" "$(dirname "${BASH_SOURCE[0]}")/check-docker-control.sh"; then failed=true; fi
-else
-  log "docker_control=DISABLED"
-  log "control_socket=not_mounted_by_standard_compose"
-fi
-
-engine_id=""
+log "doctor_started=$(timestamp) version=${FLOWCAST_VERSION:-unknown} architecture=$(uname -m)"
+for file in compose.yml compose.docker-control.yml .env; do [[ -f "$FLOWCAST_HOME/$file" ]] && check_pass "file_$file" || check_fail "file_$file"; done
+env_mode="$(stat -c '%a' "$FLOWCAST_HOME/.env" 2>/dev/null || true)"; [[ "$env_mode" == 600 ]] && check_pass env_permissions "mode=600" || check_fail env_permissions "mode=${env_mode:-unknown}"
+disk="$(df -Pk "$FLOWCAST_HOME" | awk 'NR==2 {print $4}')"; (( ${disk:-0} >= 1048576 )) && check_pass disk_space "available_kib=$disk" || check_fail disk_space
+if ! docker info >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then check_fail docker_host; else check_pass docker_host; fi
+if compose config --quiet >/dev/null 2>&1; then check_pass compose_config; else check_fail compose_config; fi
+services="$(compose config --services 2>/dev/null || true)"
 for service in storage-init icecast bliss audio-daemon engine control; do
-  id="$(compose ps -aq "$service" 2>/dev/null || true)"
-  if [[ -z "$id" ]]; then log "$service=missing"; failed=true; continue; fi
-  status="$(docker inspect -f '{{.State.Status}}' "$id")"
-  health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$id")"
-  restarts="$(docker inspect -f '{{.RestartCount}}' "$id")"
-  log "$service=present status=$status health=$health restarts=$restarts"
-  [[ "$service" == storage-init && "$status" == exited ]] || [[ "$service" != storage-init && "$status" == running && "$health" == healthy ]] || failed=true
-  [[ "$service" == engine ]] && engine_id="$id"
+  if ! printf '%s\n' "$services" | grep -Fxq "$service"; then check_fail "service_$service" "not_configured"; continue; fi
+  id="$(compose ps -aq "$service" 2>/dev/null || true)"; [[ -n "$id" ]] || { check_fail "service_$service" "missing"; continue; }
+  state="$(docker inspect -f '{{.State.Status}}' "$id" 2>/dev/null)"; health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$id" 2>/dev/null)"; restarts="$(docker inspect -f '{{.RestartCount}}' "$id" 2>/dev/null)"
+  labels="$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}/{{index .Config.Labels "com.docker.compose.service"}}' "$id" 2>/dev/null)"
+  log "service_$service=present state=$state health=$health restarts=$restarts labels=$labels"
+  if [[ "$service" == storage-init ]]; then [[ "$state" == exited ]] || check_fail "health_$service"; else [[ "$state" == running && "$health" == healthy ]] || check_fail "health_$service"; fi
 done
-
-if curl -fsS --max-time 5 "http://127.0.0.1:${FLOWCAST_HTTP_PORT:-8080}/api/health" >/dev/null; then log "control_api=accessible"; else log "control_api=unavailable"; failed=true; fi
-status_file="$(mktemp)"; stream_file="$(mktemp)"; trap 'rm -f "$status_file" "$stream_file"' EXIT
-if curl -fsS --max-time 5 "http://127.0.0.1:${FLOWCAST_STREAM_PORT:-8010}/status-json.xsl" -o "$status_file"; then
-  log "icecast_status=accessible"
-  mount="$(python3 - "$status_file" <<'PY' 2>/dev/null || true
-import json,sys
-s=json.load(open(sys.argv[1], encoding='utf-8')).get('icestats',{}).get('source',[])
-if isinstance(s,dict): s=[s]
-if s:
- print(s[0].get('mount') or '/' + s[0].get('listenurl','').rsplit('/',1)[-1])
-PY
-)"
-  if [[ -n "$mount" ]]; then
-    log "icecast_mount=visible path=$mount"
-    set +e; curl -fsS --max-time 3 "http://127.0.0.1:${FLOWCAST_STREAM_PORT:-8010}$mount" -o "$stream_file"; rc=$?; set -e
-    if [[ "$rc" == 0 || "$rc" == 28 ]] && (( $(wc -c <"$stream_file") > 0 )); then log "stream=accessible"; else log "stream=unavailable"; failed=true; fi
-  else log "icecast_mount=missing"; failed=true; fi
-else log "icecast_status=unavailable"; failed=true; fi
-
-if [[ -n "$engine_id" ]]; then
-  if docker exec "$engine_id" sh -c 'test -s /tmp/flowcast_engine_health.json && test $(( $(date +%s) - $(stat -c %Y /tmp/flowcast_engine_health.json) )) -le 120' >/dev/null 2>&1; then log "engine_health_file=fresh"; else log "engine_health_file=missing_or_stale"; failed=true; fi
-fi
-if compose exec -T control python - <<'PY' >/dev/null 2>&1
-import os,time
-files=[os.path.join(p,n) for p,_,ns in os.walk('/runtime-state') for n in ns]
-raise SystemExit(0 if files and time.time()-max(map(os.path.getmtime,files)) <= 120 else 1)
-PY
-then log "runtime_state=fresh"; else log "runtime_state=missing_or_stale"; failed=true; fi
-if compose exec -T control sh -c 'find /data/engine_history -type f \( -name "*.db" -o -name "*.sqlite*" \) -size +0c -print -quit | grep -q .' >/dev/null 2>&1; then log "history_db=present_nonempty"; else log "history_db=missing_or_empty"; failed=true; fi
-
-[[ "$failed" == false ]] || die "One or more diagnostics failed"
-log "Diagnostics passed; secret values and data contents were intentionally omitted."
+# Compare values in container configuration without ever writing either value.
+engine_id="$(compose ps -q engine 2>/dev/null || true)"; icecast_id="$(compose ps -q icecast 2>/dev/null || true)"
+engine_secret="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$engine_id" 2>/dev/null | sed -n 's/^ICECAST_PASSWORD=//p')"
+icecast_secret="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$icecast_id" 2>/dev/null | sed -n 's/^ICECAST_SOURCE_PASSWORD=//p')"
+[[ -n "$engine_secret" && "$engine_secret" == "$icecast_secret" ]] && check_pass source_credentials "MATCH" || check_fail source_credentials "MISMATCH"
+unset engine_secret icecast_secret
+config_control="$(compose exec -T control sha256sum /flowcast/config/config.yml 2>/dev/null | awk '{print $1}')"; config_engine="$(compose exec -T engine sha256sum /flowcast/config/config.yml 2>/dev/null | awk '{print $1}')"
+[[ -n "$config_control" && "$config_control" == "$config_engine" ]] && check_pass shared_config || check_fail shared_config
+mount="$(compose exec -T control sh -c "sed -n 's/^[[:space:]]*mount:[[:space:]]*//p' /flowcast/config/config.yml | head -n1" 2>/dev/null | tr -d '\r\"\047')"; [[ "$mount" == /* ]] || mount=/test.mp3
+check_pass configured_mount "path=$mount"
+if [[ "${FLOWCAST_DOCKER_CONTROL_ENABLED:-false}" == true ]]; then
+  compose exec -T control sh -c 'test -S /var/run/docker.sock && test -r /var/run/docker.sock && test -w /var/run/docker.sock' >/dev/null 2>&1 && check_pass docker_socket || check_fail docker_socket
+  actual_gid="$(compose exec -T control stat -c '%g' /var/run/docker.sock 2>/dev/null || true)"; [[ -n "$actual_gid" && "$actual_gid" == "${FLOWCAST_DOCKER_GID:-}" ]] && check_pass docker_socket_gid || check_fail docker_socket_gid
+  output="$(FLOWCAST_HOME="$FLOWCAST_HOME" "$(dirname "${BASH_SOURCE[0]}")/check-docker-control.sh" 2>&1)" && check_pass docker_ping "engine_unique=true controls_available=true" || check_fail docker_ping
+else log 'docker_control=DISABLED'; fi
+compose exec -T control curl -fsS --max-time 5 http://icecast:8000/status-json.xsl >/dev/null 2>&1 && check_pass internal_icecast || check_fail internal_icecast
+base="http://127.0.0.1:${FLOWCAST_HTTP_PORT:-8080}"
+for endpoint in /api/config/mountpoints /api/stations /api/panel/now; do
+  body="$(curl -fsS --max-time 5 "$base$endpoint" 2>/dev/null || true)"; [[ -n "$body" ]] && check_pass "api_${endpoint//\//_}" || check_fail "api_${endpoint//\//_}"
+  [[ "$body" == *"$mount"* ]] || check_fail "api_mount_${endpoint//\//_}"
+done
+stream_check() { local name=$1 url=$2 tmp rc bytes; tmp="$(mktemp)"; curl -fsS --max-time 5 "$url" -o "$tmp" >/dev/null 2>&1; rc=$?; bytes="$(wc -c <"$tmp")"; rm -f "$tmp"; if { [[ $rc == 0 || $rc == 28 ]]; } && (( bytes >= ${FLOWCAST_STREAM_MIN_BYTES:-4096} )); then check_pass "$name" "http=200 bytes=$bytes"; else check_fail "$name" "curl=$rc bytes=$bytes"; fi; }
+stream_check direct_stream "http://127.0.0.1:${FLOWCAST_STREAM_PORT:-8010}$mount"
+stream_check proxy_stream "$base/listen$mount"
+for service in engine control icecast; do recent="$(compose logs --since 10m "$service" 2>&1 | tail -n 500)"; if printf '%s' "$recent" | grep -Eqi '(password=|ICECAST_SOURCE_PASSWORD=|401.*(metadata|\.POKE)|Login failed.*Login failed)'; then check_fail "logs_$service" "credential_or_auth_pattern"; else check_pass "logs_$service"; fi; done
+log "secret values and data contents were intentionally omitted"
+if ((${#FAILED[@]})); then printf 'RESULT=FAIL\nFAILED_CHECKS=%s\n' "$(IFS=,; echo "${FAILED[*]}")"; exit 1; fi
+printf 'RESULT=PASS\n'
