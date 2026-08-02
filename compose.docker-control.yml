@@ -2,5 +2,9 @@ services:
   control:
     environment:
       FLOWCAST_DOCKER_CONTROL_ENABLED: "true"
+    group_add:
+      - "${FLOWCAST_DOCKER_GID:?FLOWCAST_DOCKER_GID is required for Docker Control}"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - type: bind
+        source: ${FLOWCAST_DOCKER_SOCKET:-/var/run/docker.sock}
+        target: /var/run/docker.sock

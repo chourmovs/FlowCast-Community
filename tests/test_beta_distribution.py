@@ -11,7 +11,8 @@ class InstallerContractTests(unittest.TestCase):
         cls.install = (ROOT / "install.sh").read_text()
 
     def test_default_and_override_version(self):
-        self.assertIn('VERSION="${FLOWCAST_VERSION:-0.1.0-rc.2}"', self.install)
+        self.assertIn('cat "$SCRIPT_DIR/VERSION"', self.install)
+        self.assertNotRegex(self.install, r'0\.1\.0-rc\.\d+')
         self.assertIn('--version)', self.install)
 
     def test_amd64_only(self):
@@ -34,6 +35,12 @@ class InstallerContractTests(unittest.TestCase):
         for service in ('storage-init', 'icecast', 'bliss', 'control', 'engine', 'audio-daemon'):
             self.assertIn(service, self.install)
         self.assertIn('FLOWCAST_START_TIMEOUT:-300', self.install)
+
+    def test_dynamic_docker_socket_group_and_validation(self):
+        self.assertIn("stat -c '%g'", self.install)
+        self.assertIn('[[ -S "$socket" ]]', self.install)
+        self.assertIn('FLOWCAST_DOCKER_GID', self.install)
+        self.assertIn('check-docker-control.sh', self.install)
 
 
 class ReleaseContractTests(unittest.TestCase):
@@ -65,6 +72,14 @@ class ReleaseContractTests(unittest.TestCase):
         setup = workflow.index('docker/setup-buildx-action@v3')
         inspect = workflow.index('scripts/release/inspect-images.sh')
         self.assertLess(setup, inspect)
+
+    def test_doctor_allow_lists_environment_and_never_dumps_secrets(self):
+        doctor = (ROOT / 'scripts/community/doctor.sh').read_text()
+        common = (ROOT / 'scripts/lib/common.sh').read_text()
+        self.assertIn('load_env', doctor)
+        self.assertNotIn('cat "$FLOWCAST_HOME/.env"', doctor)
+        self.assertNotIn('ICECAST_SOURCE_PASSWORD', common)
+        self.assertIn('secret values and data contents were intentionally omitted', doctor)
 
 
 if __name__ == '__main__':

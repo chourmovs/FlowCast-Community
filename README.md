@@ -47,3 +47,5 @@ Community beta releases follow the
 [detailed operator runbook](docs/release/community-beta-release.md).
 
 The optional `--docker-control` mode mounts the Docker socket and therefore grants effectively root-level host control. It is off by default. Support is best effort; never share `.env`, credentials, media, or databases in an issue.
+
+Release-candidate qualification must include the reusable functional stream test documented in the [quick start](docs/community/quick-start.md); repository CI remains media-free and validates packaging/runtime contracts only.
