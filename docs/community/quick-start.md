@@ -24,4 +24,12 @@ sudo /opt/flowcast/scripts/community/test-runtime-stream.sh --generate-fixture /
 sudo /opt/flowcast/scripts/community/test-runtime-stream.sh --mount /stream
 ```
 
-The test waits for the completed initializer and healthy services, checks both HTTP APIs and the configured mount, consumes audio, checks restart counts and fresh runtime state, and rejects recent persistent engine/Icecast failures. Repeat the installation on a fresh host with `--docker-control`; a successful install must report `docker_control=PASS`. A missing/non-Unix socket, unsupported `stat`, or in-container permission/API failure is an installation NO-GO. Standard mode reports `docker_control=DISABLED` and does not create Docker socket variables.
+The test waits for the completed initializer and healthy services, checks both HTTP APIs and the configured mount, consumes audio, checks restart counts and fresh runtime state, and rejects recent persistent engine/Icecast failures. Repeat the standard installation on a fresh host without extra flags; a successful install must report `docker_control=PASS`. A missing/non-Unix socket, unsupported `stat`, or in-container permission/API failure is an installation NO-GO. Only an explicit `--no-docker-control` installation reports `docker_control=DISABLED` and omits Docker socket variables.
+
+## RC6 defaults
+
+The standard one-liner needs no Docker Control flag. Docker Control is enabled, the Unix socket and its GID are detected, and absence/inaccessibility is a hard error. Pass `--no-docker-control` only to install without Start/Stop/Restart support. Socket access is root-equivalent.
+
+The web/player endpoint is port 8080 and the direct Icecast endpoint is port 8010. Container-to-container traffic never uses 8010: `control` uses `icecast:8000`. Public player links are same-origin relative unless the optional `FLOWCAST_PUBLIC_URL` reverse-proxy override is set. The station mount is configured only in `config.yml`.
+
+The completion message gives local/LAN UI, proxy and direct stream URLs, credential location, Docker Control result, and the portable `doctor.sh` command; it never prints credentials.
