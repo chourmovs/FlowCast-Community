@@ -14,9 +14,7 @@ FlowCast Community is a self-hosted radio control and playout stack for evaluati
 Install the versioned public release into `/opt/flowcast`:
 
 ```bash
-curl -fsSL \
-  https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.x/install.sh \
-  | sudo bash -s -- --version 0.1.0-rc.x
+curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.x/install.sh | sudo bash -s -- --version 0.1.0-rc.x
 ```
 
 The installer downloads the release archive and metadata, verifies its SHA-256 checksum and version, generates three independent secrets, pulls the public GHCR images, and waits up to five minutes for every service. It never installs Docker and never invokes `sudo` itself.
@@ -24,8 +22,7 @@ The installer downloads the release archive and metadata, verifies its SHA-256 c
 ### Review first
 
 ```bash
-curl -fsSLO \
-  https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.x/install.sh
+curl -fsSLO https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.x/install.sh
 
 less install.sh
 
