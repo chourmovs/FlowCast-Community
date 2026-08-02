@@ -7,9 +7,18 @@ VERSION="${FLOWCAST_VERSION:-$DEFAULT_VERSION}"
 INSTALL_DIR="${FLOWCAST_HOME:-/opt/flowcast}"
 REPOSITORY="${FLOWCAST_RELEASE_REPOSITORY:-chourmovs/FlowCast-Community}"
 RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"
-START=true; DRY_RUN=false; DOCKER_CONTROL=false; NON_INTERACTIVE=false
+START=true; DRY_RUN=false; DOCKER_CONTROL=true; NON_INTERACTIVE=false
 
-usage() { echo "Usage: install.sh [--version VERSION] [--install-dir DIR] [--release-base-url URL] [--no-start] [--docker-control] [--non-interactive] [--dry-run]"; }
+usage() {
+  cat <<'EOF'
+Usage: install.sh [--version VERSION] [--install-dir DIR] [--release-base-url URL]
+                  [--no-start] [--no-docker-control] [--docker-control]
+                  [--non-interactive] [--dry-run]
+
+Docker Control is enabled by default. --no-docker-control disables it;
+--docker-control is retained as a backwards-compatible alias.
+EOF
+}
 log() { printf '[flowcast] %s\n' "$*"; }
 die() { printf '[flowcast] ERROR: %s\n' "$*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
@@ -18,8 +27,9 @@ docker_socket_details() {
   local socket=/var/run/docker.sock
   need stat
   if [[ "${DOCKER_HOST:-}" == unix://* ]]; then socket="${DOCKER_HOST#unix://}"; fi
-  [[ -e "$socket" ]] || die "Docker Control requested, but Docker socket is absent: $socket"
-  [[ -S "$socket" ]] || die "Docker Control requested, but $socket is not a Unix socket"
+  [[ -e "$socket" ]] || die "Docker Control is enabled by default, but its socket is absent: $socket. Fix Docker access or rerun with --no-docker-control."
+  [[ -S "$socket" ]] || die "Docker Control is enabled by default, but $socket is not a Unix socket. Fix DOCKER_HOST or rerun with --no-docker-control."
+  [[ -r "$socket" && -w "$socket" ]] || die "Docker Control is enabled by default, but $socket is not accessible. Fix socket permissions or rerun with --no-docker-control."
   DOCKER_SOCKET="$socket"
   DOCKER_GID="$(stat -c '%g' "$socket" 2>/dev/null)" || die "Cannot read Docker socket GID with 'stat -c %g' (stat may be unavailable or access was denied)."
   [[ "$DOCKER_GID" =~ ^[0-9]+$ ]] || die "Docker socket returned an invalid group ID."
@@ -32,6 +42,7 @@ while (($#)); do
     --release-base-url) [[ $# -ge 2 ]] || die "--release-base-url requires a value"; RELEASE_BASE_URL="$2"; shift 2 ;;
     --no-start) START=false; shift ;;
     --docker-control) DOCKER_CONTROL=true; shift ;;
+    --no-docker-control) DOCKER_CONTROL=false; shift ;;
     --non-interactive) NON_INTERACTIVE=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
     --help|-h) usage; exit 0 ;;
@@ -78,7 +89,7 @@ manifest_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/
 mkdir -p "$INSTALL_DIR" || die "Cannot create $INSTALL_DIR; run this script with permissions suitable for /opt/flowcast."
 tar -xzf "$TMP/$ARCHIVE" -C "$INSTALL_DIR"
 cp "$TMP/release-manifest.json" "$TMP/images.lock" "$INSTALL_DIR/"
-for required in compose.yml compose.docker-control.yml scripts/community/doctor.sh; do [[ -e "$INSTALL_DIR/$required" ]] || die "Release archive is missing $required."; done
+for required in compose.yml compose.docker-control.yml scripts/community/doctor.sh scripts/community/credentials.sh; do [[ -e "$INSTALL_DIR/$required" ]] || die "Release archive is missing $required."; done
 
 secret() { openssl rand -hex 24; }
 umask 077
@@ -90,7 +101,7 @@ FLOWCAST_HTTP_PORT=8080
 FLOWCAST_STREAM_PORT=8010
 FLOWCAST_AUTH_ENABLED=true
 FLOWCAST_DOCKER_CONTROL_ENABLED=$DOCKER_CONTROL
-FLOWCAST_PUBLIC_URL=http://localhost:8080
+FLOWCAST_PUBLIC_URL=
 ICECAST_SOURCE_PASSWORD=$source_password
 ICECAST_RELAY_PASSWORD=$relay_password
 ICECAST_ADMIN_PASSWORD=$admin_password
@@ -102,7 +113,7 @@ chmod 600 "$INSTALL_DIR/.env"
 
 compose=(docker compose --project-directory "$INSTALL_DIR" --env-file "$INSTALL_DIR/.env" -f "$INSTALL_DIR/compose.yml")
 if [[ "$DOCKER_CONTROL" == true ]]; then
-  log "WARNING: --docker-control mounts /var/run/docker.sock into control. Socket access is effectively root-equivalent."
+  log "WARNING: Docker Control mounts $DOCKER_SOCKET into control. Docker socket access is effectively root-equivalent."
   compose+=(-f "$INSTALL_DIR/compose.docker-control.yml")
 fi
 
@@ -163,6 +174,13 @@ if [[ "$START" == true ]]; then
 else
   check_docker_control
 fi
-log "Interface: http://localhost:8080"
-log "Icecast stream/status: http://localhost:8010"
-log "Diagnostics: FLOWCAST_HOME=$INSTALL_DIR $INSTALL_DIR/scripts/community/doctor.sh"
+lan_ip="$(hostname -I 2>/dev/null | awk '{print $1}' || true)"; display_host="${lan_ip:-localhost}"
+log "FlowCast $VERSION is ready"
+log "Control UI:       http://$display_host:8080"
+log "Icecast status:   http://$display_host:8010/status-json.xsl"
+log "Default mount:    /test.mp3"
+log "Public stream:    http://$display_host:8080/listen/test.mp3"
+log "Icecast direct:   http://$display_host:8010/test.mp3"
+log "Docker Control:   $([[ "$DOCKER_CONTROL" == true ]] && printf PASS || printf DISABLED)"
+log "Credentials:      $INSTALL_DIR/.env (mode 600)"
+log "Diagnostics:      FLOWCAST_HOME=$INSTALL_DIR $INSTALL_DIR/scripts/community/doctor.sh"
