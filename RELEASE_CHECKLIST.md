@@ -32,6 +32,9 @@ Date: `________________`
 - [ ] API control accessible
 - [ ] Icecast accessible
 - [ ] Test fonctionnel minimal réussi
+- [ ] `test-runtime-stream.sh` reçoit le minimum d'octets sans restart engine
+- [ ] Qualification standard affiche `docker_control=DISABLED`
+- [ ] Qualification opt-in sur machine vierge affiche `docker_control=PASS`
 
 ## Verdict
 - [ ] GO

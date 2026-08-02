@@ -19,7 +19,7 @@ jobs:
       - name: Render Compose
         run: |
           docker compose --env-file .env.example -f compose.yml config --quiet
-          docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
+          FLOWCAST_DOCKER_GID=0 docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
       - name: Verify version pinning and no builds
         run: |
           ! grep -R --include='compose*.yml' -E '^\s*build:' .

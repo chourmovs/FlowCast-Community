@@ -6,7 +6,6 @@ on:
       version:
         description: Release candidate version
         required: true
-        default: 0.1.0-rc.2
         type: string
       publish:
         description: Create the public GitHub prerelease
@@ -37,7 +36,7 @@ jobs:
           python3 -m unittest discover -s tests -v
           shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
           docker compose --env-file .env.example -f compose.yml config --quiet
-          docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
+          FLOWCAST_DOCKER_GID=0 docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Inspect public linux/amd64 images anonymously

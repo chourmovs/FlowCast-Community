@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${FLOWCAST_VERSION:-0.1.0-rc.2}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || true)"
+VERSION="${FLOWCAST_VERSION:-$DEFAULT_VERSION}"
 INSTALL_DIR="${FLOWCAST_HOME:-/opt/flowcast}"
 REPOSITORY="${FLOWCAST_RELEASE_REPOSITORY:-chourmovs/FlowCast-Community}"
 RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"
@@ -11,6 +13,17 @@ usage() { echo "Usage: install.sh [--version VERSION] [--install-dir DIR] [--rel
 log() { printf '[flowcast] %s\n' "$*"; }
 die() { printf '[flowcast] ERROR: %s\n' "$*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
+
+docker_socket_details() {
+  local socket=/var/run/docker.sock
+  need stat
+  if [[ "${DOCKER_HOST:-}" == unix://* ]]; then socket="${DOCKER_HOST#unix://}"; fi
+  [[ -e "$socket" ]] || die "Docker Control requested, but Docker socket is absent: $socket"
+  [[ -S "$socket" ]] || die "Docker Control requested, but $socket is not a Unix socket"
+  DOCKER_SOCKET="$socket"
+  DOCKER_GID="$(stat -c '%g' "$socket" 2>/dev/null)" || die "Cannot read Docker socket GID with 'stat -c %g' (stat may be unavailable or access was denied)."
+  [[ "$DOCKER_GID" =~ ^[0-9]+$ ]] || die "Docker socket returned an invalid group ID."
+}
 
 while (($#)); do
   case "$1" in
@@ -26,6 +39,8 @@ while (($#)); do
   esac
 done
 
+[[ -n "$VERSION" ]] || die "No version was supplied and VERSION is unavailable. Use --version."
+
 [[ "$(uname -s)" == Linux ]] || die "FlowCast Community requires Linux."
 case "$(uname -m)" in
   x86_64|amd64) ;;
@@ -35,6 +50,7 @@ esac
 for cmd in curl sha256sum openssl docker tar df; do need "$cmd"; done
 docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is required."
 docker info >/dev/null 2>&1 || die "Cannot access Docker daemon. This installer does not install Docker or invoke sudo."
+if [[ "$DOCKER_CONTROL" == true ]]; then docker_socket_details; fi
 available="$(df -Pk "$(dirname "$INSTALL_DIR")" 2>/dev/null | awk 'NR==2 {print $4}' || df -Pk / | awk 'NR==2 {print $4}')"
 (( available >= 10485760 )) || die "At least 10 GiB free disk is required."
 
@@ -75,11 +91,13 @@ FLOWCAST_STREAM_PORT=8010
 FLOWCAST_AUTH_ENABLED=true
 FLOWCAST_DOCKER_CONTROL_ENABLED=$DOCKER_CONTROL
 FLOWCAST_PUBLIC_URL=http://localhost:8080
-
 ICECAST_SOURCE_PASSWORD=$source_password
 ICECAST_RELAY_PASSWORD=$relay_password
 ICECAST_ADMIN_PASSWORD=$admin_password
 EOF
+if [[ "$DOCKER_CONTROL" == true ]]; then
+  printf 'FLOWCAST_DOCKER_SOCKET=%s\nFLOWCAST_DOCKER_GID=%s\n' "$DOCKER_SOCKET" "$DOCKER_GID" >>"$INSTALL_DIR/.env"
+fi
 chmod 600 "$INSTALL_DIR/.env"
 
 compose=(docker compose --project-directory "$INSTALL_DIR" --env-file "$INSTALL_DIR/.env" -f "$INSTALL_DIR/compose.yml")
@@ -127,10 +145,23 @@ wait_for_stack() {
   return 1
 }
 
+check_docker_control() {
+  if [[ "$DOCKER_CONTROL" != true ]]; then log "docker_control=DISABLED"; return 0; fi
+  local output
+  if ! output="$(FLOWCAST_HOME="$INSTALL_DIR" "$INSTALL_DIR/scripts/community/check-docker-control.sh" 2>&1)"; then
+    log "docker_control=FAIL cause=${output//$'\n'/; }"
+    return 1
+  fi
+  log "docker_control=PASS"
+}
+
 if [[ "$START" == true ]]; then
   "${compose[@]}" pull
   "${compose[@]}" up -d
   wait_for_stack || die "FlowCast startup failed."
+  check_docker_control || die "Docker Control validation failed; no engine start/stop action was attempted."
+else
+  check_docker_control
 fi
 log "Interface: http://localhost:8080"
 log "Icecast stream/status: http://localhost:8010"
