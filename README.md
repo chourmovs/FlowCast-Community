@@ -15,7 +15,7 @@ Install the versioned public release into `/opt/flowcast`:
 
 ```bash
 curl -fsSL \
-  https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.2/install.sh \
+  https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.x/install.sh \
   | sudo bash -s -- --version 0.1.0-rc.x
 ```
 
