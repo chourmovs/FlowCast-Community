@@ -6,7 +6,6 @@ on:
       version:
         description: Release candidate version
         required: true
-        default: 0.1.0-rc.2
         type: string
       publish:
         description: Create the public GitHub prerelease

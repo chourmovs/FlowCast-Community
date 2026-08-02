@@ -46,15 +46,31 @@ class ReleaseArchiveRuntimeTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, dist, True)
         dist.mkdir(exist_ok=True)
         (dist / "images.lock").write_text("test fixture\n")
-        subprocess.run(["bash", "scripts/release/build-release.sh", "0.1.0-rc.2"], cwd=ROOT, check=True)
-        archive = dist / "flowcast-community-v0.1.0-rc.2.tar.gz"
+        version = "0.1.0-rc.91"
+        subprocess.run(["bash", "scripts/release/build-release.sh", version], cwd=ROOT, check=True)
+        archive = dist / f"flowcast-community-v{version}.tar.gz"
         with tarfile.open(archive) as package:
             compose = package.extractfile("./compose.yml").read().decode()
+            self.assertEqual(package.extractfile("./VERSION").read().decode().strip(), version)
+            self.assertIn(f"FLOWCAST_VERSION={version}", package.extractfile("./.env.example").read().decode())
+            self.assertIn(f"FLOWCAST_VERSION={version}", package.extractfile("./versions.env").read().decode())
         self.assertIn("/usr/local/bin/flowcast-analyzer", compose)
         self.assertIn("--healthcheck", compose)
         self.assertNotIn("http://localhost:8091/health", compose)
         self.assertNotIn("http://localhost:8092/health", compose)
         self.assertEqual(compose, (ROOT / "compose.yml").read_text())
+
+    def test_standard_and_opt_in_socket_contract(self):
+        source = (ROOT / "compose.yml").read_text()
+        override = (ROOT / "compose.docker-control.yml").read_text()
+        self.assertNotIn("docker.sock", source)
+        self.assertIn("docker.sock", override)
+        self.assertIn("FLOWCAST_DOCKER_GID", override)
+
+    def test_stream_smoke_has_success_and_failure_gates(self):
+        script = (ROOT / "scripts/community/test-runtime-stream.sh").read_text()
+        for check in ("status-json.xsl", "RestartCount", "runtime-state", "Login failed", "ENGINE_ERROR", "stream_test=PASS"):
+            self.assertIn(check, script)
 
 
 if __name__ == "__main__":
