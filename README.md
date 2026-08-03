@@ -172,9 +172,9 @@ Community works without a paid licence, starts and broadcasts without a mandator
 curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.7/install.sh | sudo bash -s -- --version 0.1.0-rc.7
 ```
 
-The tagged rc.6 command above remains the currently validated installation command while rc.7 is prepared. The installer writes `/opt/flowcast`, generates credentials, pulls versioned images and waits for service health. It does not install Docker.
+The tagged rc.7 command above remains the currently validated installation command while rc.7 is prepared. The installer writes `/opt/flowcast`, generates credentials, pulls versioned images and waits for service health. It does not install Docker.
 
-> **Security note:** the default rc.6 install enables Docker Control. Mounting the Docker socket is equivalent to granting root-level host control to the container. Use `--no-docker-control` to opt out, and never expose the control UI to untrusted users. See [Security](SECURITY.md).
+> **Security note:** the default rc.7 install enables Docker Control. Mounting the Docker socket is equivalent to granting root-level host control to the container. Use `--no-docker-control` to opt out, and never expose the control UI to untrusted users. See [Security](SECURITY.md).
 
 ## First broadcast
 
