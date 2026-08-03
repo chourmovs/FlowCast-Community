@@ -4,7 +4,7 @@ Static Astro website for `https://flowcast.spotycast.ovh`.
 
 ## Local setup
 
-Prerequisites: Node.js 22 and npm. Run `npm ci`, then `npm run dev`. Use `npm run check` for Astro/TypeScript validation, `npm run build` to generate `dist/`, and `npm run preview` to inspect that build.
+Prerequisites: Node.js 22 and npm. Run `npm install`, then `npm run dev`. Use `npm run check` for Astro/TypeScript validation, `npm run build` to generate `dist/`, and `npm run preview` to inspect that build. The dependencies are pinned to exact versions; installation expands their platform-specific transitive graph.
 
 ## Architecture
 

@@ -21,7 +21,10 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: website/package-lock.json
-      - run: npm ci
+      - name: Install pinned website dependencies
+        # The repository stores only the reviewable top-level lock declaration;
+        # npm expands the transitive graph on the Linux Pages runner.
+        run: npm install --no-audit --no-fund
         working-directory: website
       - run: npm run check
         working-directory: website
