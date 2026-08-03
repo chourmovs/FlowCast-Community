@@ -168,7 +168,7 @@ operations.
     <td width="50%" valign="top">
       <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183240.png">
         <img
-          src="docs/assets/screenshots/Capture-decran-2026-08-03-183240.png"
+          src="docs/assets/screenshots/Capture-d'écran-2026-08-03-183240.png"
           alt="FlowCast radio automation interface — screenshot 1"
           width="100%"
         >
