@@ -157,43 +157,28 @@ Explore the FlowCast control plane, from station configuration and media
 management to intelligent programming, playout supervision and broadcast
 operations.
 
+## Screenshots
+
+Explore the FlowCast control plane, from station configuration and media
+management to intelligent programming, playout supervision and broadcast
+operations.
+
 <table>
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/01-dashboard-now-playing.png">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183240.png">
         <img
-          src="docs/assets/screenshots/01-dashboard-now-playing.png"
-          alt="FlowCast dashboard and Now Playing interface"
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183240.png"
+          alt="FlowCast radio automation interface — screenshot 1"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/02-flowcast-screen.png">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183227.png">
         <img
-          src="docs/assets/screenshots/02-flowcast-screen.png"
-          alt="FlowCast radio automation interface"
-          width="100%"
-        >
-      </a>
-    </td>
-  </tr>
-
-  <tr>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/03-flowcast-screen.png">
-        <img
-          src="docs/assets/screenshots/03-flowcast-screen.png"
-          alt="FlowCast station management interface"
-          width="100%"
-        >
-      </a>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/04-flowcast-screen.png">
-        <img
-          src="docs/assets/screenshots/04-flowcast-screen.png"
-          alt="FlowCast programming interface"
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183227.png"
+          alt="FlowCast radio automation interface — screenshot 2"
           width="100%"
         >
       </a>
@@ -202,19 +187,19 @@ operations.
 
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/05-flowcast-screen.png">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183211.png">
         <img
-          src="docs/assets/screenshots/05-flowcast-screen.png"
-          alt="FlowCast playlist and media management interface"
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183211.png"
+          alt="FlowCast radio automation interface — screenshot 3"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/06-flowcast-screen.png">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183153.png">
         <img
-          src="docs/assets/screenshots/06-flowcast-screen.png"
-          alt="FlowCast audio automation settings"
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183153.png"
+          alt="FlowCast radio automation interface — screenshot 4"
           width="100%"
         >
       </a>
@@ -223,19 +208,40 @@ operations.
 
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/07-flowcast-screen.png">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183134.png">
         <img
-          src="docs/assets/screenshots/07-flowcast-screen.png"
-          alt="FlowCast broadcast monitoring interface"
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183134.png"
+          alt="FlowCast radio automation interface — screenshot 5"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/08-flowcast-screen.png">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183119.png">
         <img
-          src="docs/assets/screenshots/08-flowcast-screen.png"
-          alt="FlowCast self-hosted radio control plane"
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183119.png"
+          alt="FlowCast radio automation interface — screenshot 6"
+          width="100%"
+        >
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183056.png">
+        <img
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-183056.png"
+          alt="FlowCast radio automation interface — screenshot 7"
+          width="100%"
+        >
+      </a>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-182954.png">
+        <img
+          src="docs/assets/screenshots/Capture-decran-2026-08-03-182954.png"
+          alt="FlowCast radio automation interface — screenshot 8"
           width="100%"
         >
       </a>
