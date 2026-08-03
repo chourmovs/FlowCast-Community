@@ -46,7 +46,7 @@ Community works without a paid licence, starts and broadcasts without a mandator
 **Requirements:** Linux amd64, Docker Engine, Docker Compose v2, 2 CPU cores, at least 4 GB RAM, 10 GB free disk plus media, and free TCP ports **8080** (control/player proxy) and **8010** (direct Icecast).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.6/install.sh | sudo bash -s -- --version 0.1.0-rc.6
+curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.7/install.sh | sudo bash -s -- --version 0.1.0-rc.7
 ```
 
 The tagged rc.6 command above remains the currently validated installation command while rc.7 is prepared. The installer writes `/opt/flowcast`, generates credentials, pulls versioned images and waits for service health. It does not install Docker.
