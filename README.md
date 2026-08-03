@@ -8,9 +8,6 @@
 
 [![Release](https://img.shields.io/github/v/release/chourmovs/FlowCast-Community?display_name=tag)](https://github.com/chourmovs/FlowCast-Community/releases) [![Validate](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml/badge.svg)](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml) [![License: MIT](https://img.shields.io/badge/repository-MIT-22D3EE.svg)](LICENSE) ![Platform: Linux amd64](https://img.shields.io/badge/platform-linux%2Famd64-8B5CF6)
 
-## Product preview
-
-No product image is committed yet: this documentation runner cannot launch a verified rc.7 instance, and the repository will not substitute an invented mockup. The first preview will be a sanitized capture of the authenticated dashboard and Now Playing view produced through the [real-instance capture procedure](docs/assets/screenshots/README.md).
 
 # Self-hosted radio automation that thinks beyond the playlist
 
@@ -145,17 +142,6 @@ FlowCast Pro builds on the Community broadcast foundation with optional advanced
 * commercial licensing and support options.
 
 Pro remains optional. The Community broadcast path must continue operating independently if Pro is not configured or its licensing service is unavailable.
-
-
-## Screenshots
-
-Explore the FlowCast control plane, from station configuration and media management to intelligent programming, playout supervision and broadcast operations.
-
-## Screenshots
-
-Explore the FlowCast control plane, from station configuration and media
-management to intelligent programming, playout supervision and broadcast
-operations.
 
 ## Screenshots
 
