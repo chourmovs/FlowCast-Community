@@ -151,43 +151,28 @@ Pro remains optional. The Community broadcast path must continue operating indep
 
 Explore the FlowCast control plane, from station configuration and media management to intelligent programming, playout supervision and broadcast operations.
 
+## Screenshots
+
+Explore the FlowCast control plane, from station configuration and media
+management to intelligent programming, playout supervision and broadcast
+operations.
+
 <table>
   <tr>
     <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183240.png">
+      <a href="docs/assets/screenshots/01-dashboard-now-playing.png">
         <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183240.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 1"
+          src="docs/assets/screenshots/01-dashboard-now-playing.png"
+          alt="FlowCast dashboard and Now Playing interface"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183227.png">
+      <a href="docs/assets/screenshots/02-flowcast-screen.png">
         <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183227.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 2"
-          width="100%"
-        >
-      </a>
-    </td>
-  </tr>
-
-  <tr>
-    <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183211.png">
-        <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183211.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 3"
-          width="100%"
-        >
-      </a>
-    </td>
-    <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183153.png">
-        <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183153.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 4"
+          src="docs/assets/screenshots/02-flowcast-screen.png"
+          alt="FlowCast radio automation interface"
           width="100%"
         >
       </a>
@@ -196,19 +181,19 @@ Explore the FlowCast control plane, from station configuration and media managem
 
   <tr>
     <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183134.png">
+      <a href="docs/assets/screenshots/03-flowcast-screen.png">
         <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183134.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 5"
+          src="docs/assets/screenshots/03-flowcast-screen.png"
+          alt="FlowCast station management interface"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183119.png">
+      <a href="docs/assets/screenshots/04-flowcast-screen.png">
         <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183119.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 6"
+          src="docs/assets/screenshots/04-flowcast-screen.png"
+          alt="FlowCast programming interface"
           width="100%"
         >
       </a>
@@ -217,25 +202,50 @@ Explore the FlowCast control plane, from station configuration and media managem
 
   <tr>
     <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183056.png">
+      <a href="docs/assets/screenshots/05-flowcast-screen.png">
         <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-183056.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 7"
+          src="docs/assets/screenshots/05-flowcast-screen.png"
+          alt="FlowCast playlist and media management interface"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-182954.png">
+      <a href="docs/assets/screenshots/06-flowcast-screen.png">
         <img
-          src="https://spotycast.ovh/wp-content/uploads/2026/08/Capture-decran-2026-08-03-182954.png"
-          alt="FlowCast self-hosted radio automation interface — screenshot 8"
+          src="docs/assets/screenshots/06-flowcast-screen.png"
+          alt="FlowCast audio automation settings"
+          width="100%"
+        >
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/assets/screenshots/07-flowcast-screen.png">
+        <img
+          src="docs/assets/screenshots/07-flowcast-screen.png"
+          alt="FlowCast broadcast monitoring interface"
+          width="100%"
+        >
+      </a>
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/assets/screenshots/08-flowcast-screen.png">
+        <img
+          src="docs/assets/screenshots/08-flowcast-screen.png"
+          alt="FlowCast self-hosted radio control plane"
           width="100%"
         >
       </a>
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <em>Click any screenshot to open the full-resolution view.</em>
+</p>
 
 <p align="center">
   <em>Click any screenshot to open the full-resolution view.</em>
