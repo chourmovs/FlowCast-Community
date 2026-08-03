@@ -4,7 +4,7 @@
 
 **Automate · Broadcast · Stay independent**
 
-[Quick Start](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
+[Website](https://flowcast.spotycast.ovh) · [Quick Start](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
 
 [![Release](https://img.shields.io/github/v/release/chourmovs/FlowCast-Community?display_name=tag)](https://github.com/chourmovs/FlowCast-Community/releases) [![Validate](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml/badge.svg)](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml) [![License: MIT](https://img.shields.io/badge/repository-MIT-22D3EE.svg)](LICENSE) ![Platform: Linux amd64](https://img.shields.io/badge/platform-linux%2Famd64-8B5CF6)
 
