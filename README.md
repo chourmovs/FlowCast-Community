@@ -196,9 +196,9 @@ operations.
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183153.png">
+      <a href="docs/assets/screenshots/Capture4.png">
         <img
-          src="docs/assets/screenshots/Capture-decran-2026-08-03-183153.png"
+          src="docs/assets/screenshots/Capture4.png"
           alt="FlowCast radio automation interface — screenshot 4"
           width="100%"
         >
@@ -208,9 +208,9 @@ operations.
 
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183134.png">
+      <a href="docs/assets/screenshots/Capture5.png">
         <img
-          src="docs/assets/screenshots/Capture-decran-2026-08-03-183134.png"
+          src="docs/assets/screenshots/Capture5.png"
           alt="FlowCast radio automation interface — screenshot 5"
           width="100%"
         >
