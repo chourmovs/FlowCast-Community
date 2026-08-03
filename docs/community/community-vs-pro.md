@@ -1,5 +1,13 @@
 # Community versus Pro
 
-Community includes authenticated control, configuration, scheduling, playout, analysis, streaming, diagnostics, backup, restore, and updates. It starts and broadcasts without a licence and makes no mandatory licence-service request.
+[Repository home](../../README.md) · [Documentation index](../README.md)
 
-Optional Pro affordances may be displayed but remain disabled without operator-supplied licence configuration. Pro entitlement may add commercial support or advanced fleet features; it must not gate Community broadcasting. When explicitly enabled, a licence request may transmit licence identifier, FlowCast version, installation identifier, requested entitlement, and coarse platform metadata—never media, playlists, Icecast secrets, or listener data. If the service is unavailable, cached valid entitlement may follow its documented expiry; Pro features become unavailable while Community operation continues. No endpoint or credential is shipped in this Preview.
+## Community
+
+Community operates without a paid licence, can start and broadcast, makes no mandatory licence-service request, retains the essential authenticated control/scheduling/playout/analysis/Icecast path, and receives best-effort community support without an SLA.
+
+## Pro
+
+Pro remains optional and uses a separate commercial licence. It may add advanced functions or services only when separately defined and documented; this page makes no feature promise. A Pro licensing-service outage must not interrupt Community operation.
+
+When the operator explicitly configures Pro, a licence request may transmit a licence identifier, FlowCast version, installation identifier, requested entitlement and coarse platform metadata—never media, playlists, Icecast secrets or listener data. If an optional service is unavailable, Pro entitlement handling may follow its documented terms while Community broadcasting continues.

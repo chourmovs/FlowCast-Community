@@ -1,5 +1,6 @@
 # Update and rollback: RC5 to RC6
 
+[Repository home](../../README.md) · [Documentation index](../README.md)
 Create a backup, then update in place:
 
 ```bash

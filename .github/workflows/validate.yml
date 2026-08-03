@@ -10,6 +10,13 @@ jobs:
         run: |
           python3 scripts/audit-public-repository.py
           python3 scripts/audit-runtime-contract.py
+      - name: Documentation policy and links
+        run: python3 scripts/docs/validate_docs.py
+      - name: Essential external links
+        run: |
+          for url in https://github.com/chourmovs/FlowCast-Community/releases https://github.com/chourmovs/FlowCast-Community/security; do
+            curl --fail --silent --show-error --location --retry 2 --max-time 20 --head "$url" >/dev/null
+          done
       - name: Unit tests
         run: python3 -m unittest discover -s tests -v
       - name: Shellcheck
