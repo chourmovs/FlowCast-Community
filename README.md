@@ -9,18 +9,6 @@
 [![Release](https://img.shields.io/github/v/release/chourmovs/FlowCast-Community?display_name=tag)](https://github.com/chourmovs/FlowCast-Community/releases) [![Validate](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml/badge.svg)](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml) [![License: MIT](https://img.shields.io/badge/repository-MIT-22D3EE.svg)](LICENSE) ![Platform: Linux amd64](https://img.shields.io/badge/platform-linux%2Famd64-8B5CF6)
 
 
-# Self-hosted radio automation that thinks beyond the playlist
-
-**FlowCast is a self-hosted radio automation, scheduling and intelligent playout platform for operators who want complete control over both their infrastructure and their station's sound.**
-
-Unlike traditional radio automation stacks built around a general-purpose Liquidsoap scripting layer, FlowCast uses a dedicated playout engine designed specifically for automated broadcasting, fine-grained transitions and music-aware programming.
-
-Configure your station. Shape its sound. Let FlowCast handle the playout.
-
-**Automate · Transition · Broadcast · Stay independent**
-
-[Quick Start](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
-
 ---
 
 ## Why FlowCast is different
