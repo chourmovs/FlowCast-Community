@@ -1,5 +1,6 @@
 # Runtime contract
 
+[Repository home](../../README.md) · [Documentation index](../README.md)
 The canonical distribution has six Compose services: `storage-init`, `icecast`, `bliss`, `audio-daemon`, `engine`, and `control`. The public HTTP mapping targets control port 8088; Bliss listens on 8090; Icecast listens on 8000. `audio-daemon` uses the analyzer OCI image but is never named `analyzer` as a Compose service.
 
 Persistent state is separated into `flowcast-catalog`, `flowcast-media`, `flowcast-settings`, `flowcast-engine-history`, `flowcast-cache`, `flowcast-analysis`, and `flowcast-runtime-state`. Control and engine share `/flowcast` and `/data/engine_history`; engine writes runtime state through `/tmp`, while control reads the same volume at `/runtime-state` read-only. Both control and engine wait for a successful `storage-init`. Retired `/media`, `/settings`, `/history`, `/analysis`, 8091, and 8092 contracts are forbidden by the runtime audit.

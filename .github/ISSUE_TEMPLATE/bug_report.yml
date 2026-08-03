@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a reproducible, sanitized FlowCast Community problem
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Public report:** never publish `.env`, licence keys, Icecast passwords, tokens, private media, personal data, machine names, private addresses, cookies, databases or backups. Report vulnerabilities through the private Security Advisory link.
+  - type: input
+    id: version
+    attributes: {label: FlowCast version, placeholder: "0.1.0-rc.6"}
+    validations: {required: true}
+  - type: input
+    id: host
+    attributes: {label: Host system, description: "Distribution, release and architecture; omit hostnames and addresses."}
+    validations: {required: true}
+  - type: input
+    id: docker
+    attributes: {label: Docker versions, description: "Docker Engine and Docker Compose v2 versions."}
+    validations: {required: true}
+  - type: dropdown
+    id: docker_control
+    attributes: {label: Docker Control mode, options: [Enabled, Explicitly disabled, Unknown]}
+    validations: {required: true}
+  - type: textarea
+    id: doctor
+    attributes: {label: Sanitized doctor.sh result, description: "Include RESULT and failed checks only after redaction."}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes: {label: Reproduction steps, placeholder: "1. …\n2. …"}
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes: {label: Expected result}
+    validations: {required: true}
+  - type: textarea
+    id: actual
+    attributes: {label: Actual result}
+    validations: {required: true}
+  - type: textarea
+    id: logs
+    attributes: {label: Sanitized log excerpts, description: "Minimal relevant lines only. Remove all secrets and private data."}
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Public-data confirmation
+      options:
+        - label: I removed `.env`, licence keys, Icecast passwords, tokens, private media and personal data.
+          required: true

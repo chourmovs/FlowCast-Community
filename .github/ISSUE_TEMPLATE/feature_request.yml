@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a focused Community improvement
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include `.env`, licence keys, passwords, tokens, private media, personal data or confidential product information."
+  - type: textarea
+    id: problem
+    attributes: {label: Operator problem, description: Describe the use case and its impact.}
+    validations: {required: true}
+  - type: textarea
+    id: proposal
+    attributes: {label: Proposed outcome, description: Describe behavior rather than an unverified implementation.}
+    validations: {required: true}
+  - type: textarea
+    id: alternatives
+    attributes: {label: Alternatives considered}
+  - type: dropdown
+    id: scope
+    attributes: {label: Community scope, options: [Essential broadcast workflow, Operations and diagnostics, Documentation and packaging, Unsure]}
+    validations: {required: true}
