@@ -217,9 +217,9 @@ operations.
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183119.png">
+      <a href="docs/assets/screenshots/Capture6.png">
         <img
-          src="docs/assets/screenshots/Capture-decran-2026-08-03-183119.png"
+          src="docs/assets/screenshots/Capture6.png"
           alt="FlowCast radio automation interface — screenshot 6"
           width="100%"
         >
@@ -229,18 +229,18 @@ operations.
 
   <tr>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-183056.png">
+      <a href="docs/assets/screenshots/Capture7.png">
         <img
-          src="docs/assets/screenshots/Capture-decran-2026-08-03-183056.png"
+          src="docs/assets/screenshots/Capture7.png"
           alt="FlowCast radio automation interface — screenshot 7"
           width="100%"
         >
       </a>
     </td>
     <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture-decran-2026-08-03-182954.png">
+      <a href="docs/assets/screenshots/Capture8.png">
         <img
-          src="docs/assets/screenshots/Capture-decran-2026-08-03-182954.png"
+          src="docs/assets/screenshots/Capture8.png"
           alt="FlowCast radio automation interface — screenshot 8"
           width="100%"
         >
