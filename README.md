@@ -12,17 +12,140 @@
 
 No product image is committed yet: this documentation runner cannot launch a verified rc.7 instance, and the repository will not substitute an invented mockup. The first preview will be a sanitized capture of the authenticated dashboard and Now Playing view produced through the [real-instance capture procedure](docs/assets/screenshots/README.md).
 
-## Why FlowCast
+# Self-hosted radio automation that thinks beyond the playlist
 
-| Operator control | Scheduling and automation | Integrated broadcast chain | Operations and diagnostics |
-| --- | --- | --- | --- |
-| Run the stack and retain its state on infrastructure you administer. | Organize stations, media and playlists into scheduled programming. | Coordinate analysis, transition-aware playout and Icecast delivery. | Inspect health, history and sanitized diagnostics; back up, update and restore deliberately. |
+**FlowCast is a self-hosted radio automation, scheduling and intelligent playout platform for operators who want complete control over both their infrastructure and their station's sound.**
 
-## Features
+Unlike traditional radio automation stacks built around a general-purpose Liquidsoap scripting layer, FlowCast uses a dedicated playout engine designed specifically for automated broadcasting, fine-grained transitions and music-aware programming.
 
-The Community runtime contract currently qualifies: authenticated control; station configuration; playlists and media library; scheduling; Rust playout engine; audio analysis and similarity processing with bliss; transitions; engine history; Icecast streaming; backup and restore; controlled updates; `doctor.sh` diagnostics; and opt-out Docker Control. See the [runtime contract](docs/community/runtime-contract.md) and [known limitations](docs/community/known-limitations.md).
+Configure your station. Shape its sound. Let FlowCast handle the playout.
 
-> **Docker Control:** enabling the Docker socket gives the `control` service effectively root-equivalent control of the host. Enable it only for trusted administrators; see the [Docker Control guide](docs/how-to/docker-control.md).
+**Automate · Transition · Broadcast · Stay independent**
+
+[Quick Start](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
+
+---
+
+## Why FlowCast is different
+
+FlowCast is not simply a web interface placed in front of a generic streaming script. Its scheduler, audio analysis and playout engine are designed together as a complete radio automation system.
+
+### No Liquidsoap scripting layer
+
+Many self-hosted radio platforms ultimately require operators to understand, generate or troubleshoot Liquidsoap scripts.
+
+FlowCast takes a different approach.
+
+Its dedicated Rust playout engine receives an explicit station configuration and executes the broadcast directly. Operators configure playlists, scheduling, transitions and station behaviour without maintaining a separate domain-specific playout script.
+
+This means:
+
+* no Liquidsoap syntax to learn;
+* no generated script to inspect when something behaves unexpectedly;
+* no fragile custom script fragments to maintain across upgrades;
+* fewer abstraction layers between the control interface and the audio engine;
+* a playout runtime developed specifically around FlowCast's scheduling model.
+
+You configure the desired broadcast behaviour—not the implementation script behind it.
+
+### Transitions are a first-class feature
+
+FlowCast treats the transition between two tracks as part of the programming, not as a fixed crossfade added at the end of the audio pipeline.
+
+Transition parameters can be tuned to shape the identity of the station:
+
+* fade-in and fade-out timing;
+* overlap duration;
+* bridge duration;
+* track exit timing;
+* queue and prefetch behaviour;
+* transition-aware playout decisions.
+
+The objective is not merely to avoid silence. It is to give operators precise control over how one track hands over to the next.
+
+A continuous radio stream should sound programmed—not shuffled.
+
+### Music-aware programming
+
+Traditional rotation systems primarily select tracks from rules, categories, clocks or random pools. FlowCast can also use information extracted from the audio itself.
+
+#### BPM-driven programming
+
+FlowCast can use track tempo as part of the scheduling and selection process.
+
+BPM-aware programming helps build sequences with more coherent changes in pace and energy, reducing abrupt transitions between tracks that satisfy the same playlist rules but do not naturally follow each other.
+
+Tempo does not replace editorial rules. It adds a musical signal to them.
+
+#### Bliss-driven programming with FlowCast Pro
+
+FlowCast Pro can extend music-aware selection using acoustic similarity features produced through Bliss analysis.
+
+Instead of considering only metadata such as genre, artist or BPM, Bliss-driven selection can compare characteristics extracted directly from the audio signal to identify tracks that are musically compatible.
+
+This creates the foundation for:
+
+* similarity-aware track selection;
+* smoother musical progression;
+* more coherent automatic sequencing;
+* reduced repetition of tracks with overly similar profiles;
+* programming driven by both editorial constraints and acoustic distance.
+
+Community provides the autonomous broadcast foundation. Pro adds deeper music-intelligence capabilities without replacing the operator's programming strategy.
+
+---
+
+## A different approach to radio automation
+
+| Conventional script-centric stack                                 | FlowCast                                                                    |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Playout behaviour expressed through a separate scripting language | Dedicated playout engine controlled through explicit FlowCast configuration |
+| Transitions commonly reduced to a global crossfade                | Fine-grained transition timing, overlap and bridge controls                 |
+| Rotation primarily based on metadata, clocks and random selection | Scheduling enriched with BPM-aware selection                                |
+| Advanced musical sequencing requires custom logic                 | Optional Bliss-driven acoustic similarity with FlowCast Pro                 |
+| Troubleshooting often requires inspecting generated scripts       | Runtime state, history, logs and diagnostics exposed through FlowCast       |
+| Changes may require editing or regenerating playout code          | Station behaviour configured without writing playout scripts                |
+
+FlowCast does not try to hide a traditional radio stack behind another abstraction layer. It replaces that layer with a purpose-built scheduling and playout architecture.
+
+---
+
+## Core capabilities
+
+### FlowCast Community
+
+The Community edition provides the complete autonomous broadcast path:
+
+* authenticated station control;
+* media library management;
+* playlist creation and organization;
+* scheduled programming;
+* BPM-aware music selection;
+* configurable track transitions;
+* dedicated Rust playout engine;
+* audio analysis;
+* Icecast stream delivery;
+* Now Playing and upcoming-track information;
+* engine history;
+* backup and restore;
+* controlled updates and rollback;
+* installation diagnostics through `doctor.sh`;
+* optional Docker Control for service operations.
+
+Community starts and broadcasts without a paid licence and without a mandatory remote licence-service request.
+
+### FlowCast Pro
+
+FlowCast Pro builds on the Community broadcast foundation with optional advanced capabilities, including:
+
+* Bliss-driven acoustic similarity;
+* music-aware sequence optimization;
+* advanced transition and programming strategies;
+* additional operational or fleet-oriented services as they become officially documented;
+* commercial licensing and support options.
+
+Pro remains optional. The Community broadcast path must continue operating independently if Pro is not configured or its licensing service is unavailable.
+
 
 ## Screenshots
 
