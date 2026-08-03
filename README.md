@@ -247,11 +247,6 @@ operations.
   <em>Click any screenshot to open the full-resolution view.</em>
 </p>
 
-<p align="center">
-  <em>Click any screenshot to open the full-resolution view.</em>
-</p>
-
-
 See the [capture and publication procedure](docs/assets/screenshots/README.md).
 
 ## Community Edition
