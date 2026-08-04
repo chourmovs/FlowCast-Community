@@ -24,7 +24,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Audit public repository
+      - name: Load FlowCast version
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f version.env
+          cat version.env >> "$GITHUB_ENV"
+
+      - name: Audit repository
         run: |
           python3 scripts/audit-public-repository.py
           python3 scripts/audit-runtime-contract.py
@@ -44,6 +51,7 @@ jobs:
 
           for url in "${urls[@]}"; do
             echo "Checking ${url}"
+
             curl \
               --fail \
               --silent \
@@ -67,7 +75,7 @@ jobs:
             scripts/community/*.sh \
             scripts/lib/*.sh
 
-      - name: Validate YAML syntax
+      - name: Validate YAML
         shell: bash
         run: |
           ruby <<'RUBY'
@@ -84,20 +92,22 @@ jobs:
           end
           RUBY
 
-      - name: Render base Compose configuration
+      - name: Render base Compose
         run: |
           docker compose \
             --env-file .env.example \
+            --env-file version.env \
             -f compose.yml \
             config \
             --quiet
 
-      - name: Render Docker Control configuration
+      - name: Render Docker Control Compose
         env:
           FLOWCAST_DOCKER_GID: "0"
         run: |
           docker compose \
             --env-file .env.example \
+            --env-file version.env \
             -f compose.yml \
             -f compose.docker-control.yml \
             config \
@@ -120,7 +130,7 @@ jobs:
             --include='compose*.yml' \
             -nE 'image:.*:latest([[:space:]]|$)' \
             .; then
-            echo "::error::Compose images must not use the latest tag."
+            echo "::error::Compose images must not use latest."
             exit 1
           fi
 
@@ -144,7 +154,7 @@ jobs:
           cache: npm
           cache-dependency-path: website/package-lock.json
 
-      - name: Resolve website lock graph
+      - name: Resolve package lock graph
         run: |
           npm install \
             --package-lock-only \
@@ -152,7 +162,7 @@ jobs:
             --no-audit \
             --no-fund
 
-      - name: Install website dependencies
+      - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
       - name: Check Astro project
@@ -161,7 +171,7 @@ jobs:
       - name: Build Astro website
         run: npm run build
 
-      - name: Verify generated website
+      - name: Verify generated site
         shell: bash
         run: |
           set -euo pipefail
@@ -175,6 +185,6 @@ jobs:
           if grep -RInE \
             '/FlowCast-Community(flowcast|screenshots)|src="/screenshots/|href="/favicon' \
             dist; then
-            echo "::error::Invalid GitHub Pages asset path found."
+            echo "::error::Invalid GitHub Pages asset path."
             exit 1
           fi
