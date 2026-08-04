@@ -1,5 +1,90 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'; import FeatureCard from '../components/FeatureCard.astro'; import CallToAction from '../components/CallToAction.astro';
-const groups=[['Station control','Authenticated station controls, configuration, Now Playing and upcoming-track information.'],['Media and playlists','Import and catalogue operator-owned media, then create and organise playlists.'],['Scheduling','Scheduled programming with playlist rules and BPM-aware selection.'],['Audio analysis','Analysis supplies tempo information used by the Community scheduling path.'],['Transitions','Configure fade-in, fade-out, overlap, bridges, track exits, queues and prefetch.'],['Playout engine','A dedicated Rust engine runs automated radio playout from explicit FlowCast configuration.'],['Icecast delivery','Versioned services deliver the configured station stream through Icecast.'],['History and supervision','Inspect engine history, runtime state, service health, logs and diagnostics.'],['Backup and operations','Repository scripts cover diagnosis, backup, restore, update and rollback.'],['Optional Pro capabilities','Separately licensed capabilities may include documented Bliss acoustic similarity and advanced programming strategies.']];
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+import CallToAction from '../components/CallToAction.astro';
+
+interface FeatureGroup {
+  title: string;
+  text: string;
+}
+
+const groups: FeatureGroup[] = [
+  {
+    title: 'Station control',
+    text: 'Authenticated station controls, configuration, Now Playing and upcoming-track information.',
+  },
+  {
+    title: 'Media and playlists',
+    text: 'Import and catalogue operator-owned media, then create and organise playlists.',
+  },
+  {
+    title: 'Scheduling',
+    text: 'Scheduled programming with playlist rules and BPM-aware selection.',
+  },
+  {
+    title: 'Audio analysis',
+    text: 'Analysis supplies tempo information used by the Community scheduling path.',
+  },
+  {
+    title: 'Transitions',
+    text: 'Configure fade-in, fade-out, overlap, bridges, track exits, queues and prefetch.',
+  },
+  {
+    title: 'Playout engine',
+    text: 'A dedicated Rust engine runs automated radio playout from explicit FlowCast configuration.',
+  },
+  {
+    title: 'Icecast delivery',
+    text: 'Versioned services deliver the configured station stream through Icecast.',
+  },
+  {
+    title: 'History and supervision',
+    text: 'Inspect engine history, runtime state, service health, logs and diagnostics.',
+  },
+  {
+    title: 'Backup and operations',
+    text: 'Repository scripts cover diagnosis, backup, restore, update and rollback.',
+  },
+  {
+    title: 'Optional Pro capabilities',
+    text: 'Separately licensed capabilities may include documented Bliss acoustic similarity and advanced programming strategies.',
+  },
+];
 ---
-<BaseLayout title="Features — Self-hosted radio automation software | FlowCast" description="Explore FlowCast station control, radio scheduling, audio analysis, transitions, Rust playout, Icecast delivery and operations."><section class="page container"><header class="page-head"><p class="eyebrow">FEATURES</p><h1>Radio automation from scheduling to Icecast delivery</h1><p>FlowCast is Docker radio automation software for operators who want an authenticated, self-hosted control plane and an explicit automated playout path.</p></header><div class="grid">{groups.map(([title,text])=><FeatureCard title={title}>{text}</FeatureCard>)}</div><section class="prose"><h2>A connected system</h2><p>Media, playlists, radio scheduling software, analysis, transitions and delivery share one station model. That integration is the core design choice—not a claim that FlowCast fits every broadcast workflow.</p><p>FlowCast is currently a Preview. Public OCI images may not exist for every tag or architecture, and endurance, rootless Docker, large-library and disaster-recovery qualification remain incomplete.</p></section></section><CallToAction/></BaseLayout>
+
+<BaseLayout
+  title="Features — Self-hosted radio automation software | FlowCast"
+  description="Explore FlowCast station control, radio scheduling, audio analysis, transitions, Rust playout, Icecast delivery and operations."
+>
+  <section class="page container">
+    <header class="page-head">
+      <p class="eyebrow">FEATURES</p>
+      <h1>Radio automation from scheduling to Icecast delivery</h1>
+      <p>
+        FlowCast is Docker radio automation software for operators who want an authenticated,
+        self-hosted control plane and an explicit automated playout path.
+      </p>
+    </header>
+    <div class="grid">
+      {
+        groups.map((group) => (
+          <FeatureCard title={group.title}>{group.text}</FeatureCard>
+        ))
+      }
+    </div>
+    <section class="prose">
+      <h2>A connected system</h2>
+      <p>
+        Media, playlists, radio scheduling software, analysis, transitions and delivery share one
+        station model. That integration is the core design choice—not a claim that FlowCast fits
+        every broadcast workflow.
+      </p>
+      <p>
+        FlowCast is currently a Preview. Public OCI images may not exist for every tag or
+        architecture, and endurance, rootless Docker, large-library and disaster-recovery
+        qualification remain incomplete.
+      </p>
+    </section>
+  </section>
+  <CallToAction />
+</BaseLayout>

@@ -21,14 +21,14 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: website/package-lock.json
-      - name: Install pinned website dependencies
-        # The repository stores only the reviewable top-level lock declaration;
-        # npm expands the transitive graph on the Linux Pages runner.
-        run: npm install --no-audit --no-fund
+      - name: Install dependencies
+        run: npm ci
         working-directory: website
-      - run: npm run check
+      - name: Check Astro project
+        run: npm run check
         working-directory: website
-      - run: npm run build
+      - name: Build Astro project
+        run: npm run build
         working-directory: website
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
