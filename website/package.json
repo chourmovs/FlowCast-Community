@@ -3,7 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "astro dev", "build": "astro build", "preview": "astro preview", "astro": "astro", "check": "astro check" },
-  "dependencies": { "@astrojs/sitemap": "3.7.3", "astro": "5.18.2" },
-  "devDependencies": { "@astrojs/check": "0.9.10", "typescript": "5.9.3" }
+  "scripts": {
+    "dev": "npm run prepare-assets && astro dev",
+    "prepare-assets": "node scripts/prepare-assets.mjs",
+    "check": "astro check",
+    "build": "npm run prepare-assets && astro check && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.3",
+    "astro": "5.18.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "5.9.3"
+  }
 }

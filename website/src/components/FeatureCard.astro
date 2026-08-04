@@ -1,5 +1,14 @@
 ---
-interface Props { title: string; icon?: string }
+interface Props {
+  title: string;
+  icon?: string;
+}
+
 const { title, icon = '◆' } = Astro.props;
 ---
-<article class="card"><span class="card-icon" aria-hidden="true">{icon}</span><h3>{title}</h3><div><slot /></div></article>
+
+<article class="card">
+  <span class="card-icon" aria-hidden="true">{icon}</span>
+  <h3>{title}</h3>
+  <div><slot /></div>
+</article>

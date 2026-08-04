@@ -1,1 +1,26 @@
-<section class="hero"><div class="container hero-grid"><div><p class="eyebrow">RADIO INFRASTRUCTURE, YOUR HOST</p><h1>Self-hosted radio automation, scheduling and playout — under your control.</h1><p class="lede">FlowCast packages an authenticated control plane and versioned broadcast services for an operator-managed Linux host.</p><div class="actions"><a class="button" href="/installation">Install FlowCast</a><a class="button secondary" href="https://github.com/chourmovs/FlowCast-Community">View on GitHub</a></div></div><div class="signal" aria-hidden="true"><i></i><i></i><i></i><b></b></div></div></section>
+---
+import { withBase } from '../lib/paths';
+---
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <div class="status-line"><span>Community Preview</span></div>
+      <p class="eyebrow">SELF-HOSTED RADIO AUTOMATION</p>
+      <h1>Automate your radio. <em>Own the entire broadcast path.</em></h1>
+      <p class="lede">Schedule music, shape transitions and deliver to Icecast through a dedicated Rust playout engine—all on infrastructure you control.</p>
+      <div class="actions">
+        <a class="button" href={withBase('installation')}>Install FlowCast</a>
+        <a class="button secondary" href={withBase('screenshots')}>Explore the interface</a>
+      </div>
+      <a class="text-link" href="https://github.com/chourmovs/FlowCast-Community">View the source on GitHub <span aria-hidden="true">↗</span></a>
+      <p class="trust-line"><span>Docker</span><span>Linux</span><span>Rust playout</span><span>Icecast</span></p>
+    </div>
+    <div class="product-window hero-window">
+      <div class="window-bar"><i></i><i></i><i></i><span>FlowCast Control</span></div>
+      <img src={withBase('screenshots/Capture1.png')} width="1900" height="1079" alt="FlowCast station dashboard showing Now Playing, the upcoming queue and service health" fetchpriority="high" />
+    </div>
+  </div>
+</section>
+<div class="credibility" aria-label="FlowCast platform characteristics">
+  <div class="container"><span>Self-hosted</span><span>Docker Compose</span><span>Rust engine</span><span>Icecast delivery</span><span>No Liquidsoap scripting layer</span></div>
+</div>

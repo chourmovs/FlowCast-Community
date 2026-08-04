@@ -1,7 +1,70 @@
 ---
-import Header from '../components/Header.astro'; import Footer from '../components/Footer.astro'; import '../styles/global.css';
-interface Props { title:string; description:string; canonical?:string; image?:string; noindex?:boolean; structuredData?:Record<string, unknown> }
-const { title, description, canonical = Astro.url.pathname, image='/og-flowcast.svg', noindex=false, structuredData } = Astro.props;
-const canonicalUrl = new URL(canonical, Astro.site); const imageUrl = new URL(image, Astro.site);
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  image?: string;
+  noindex?: boolean;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const {
+  title,
+  description,
+  canonical,
+  image = withBase('og-flowcast.svg'),
+  noindex = false,
+  structuredData,
+} = Astro.props;
+
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site);
+const imageUrl = new URL(image, Astro.site);
+const serializedStructuredData = structuredData
+  ? JSON.stringify(structuredData).replace(/</g, '\\u003c')
+  : undefined;
 ---
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width"/><title>{title}</title><meta name="description" content={description}/><link rel="canonical" href={canonicalUrl}/><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta property="og:site_name" content="FlowCast"/><meta property="og:type" content="website"/><meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:url" content={canonicalUrl}/><meta property="og:image" content={imageUrl}/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content={title}/><meta name="twitter:description" content={description}/><meta name="twitter:image" content={imageUrl}/>{noindex && <meta name="robots" content="noindex, nofollow"/>}{structuredData && <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />}</head><body><a class="skip" href="#content">Skip to content</a><Header/><main id="content"><slot/></main><Footer/></body></html>
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href={withBase('favicon.svg')} type="image/svg+xml" />
+    <meta property="og:site_name" content="FlowCast" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {
+      serializedStructuredData && (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={serializedStructuredData}
+        />
+      )
+    }
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <Header />
+    <main id="content"><slot /></main>
+    <Footer />
+  </body>
+</html>
