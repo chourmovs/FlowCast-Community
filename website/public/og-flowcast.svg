@@ -1,1 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><defs><linearGradient id="g"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><rect width="1200" height="630" fill="#070b18"/><circle cx="1000" cy="80" r="300" fill="#151b38"/><path d="M860 220a150 150 0 010 190M910 170a220 220 0 010 290" fill="none" stroke="url(#g)" stroke-width="22" stroke-linecap="round"/><circle cx="790" cy="315" r="40" fill="#22d3ee"/><text x="90" y="285" fill="url(#g)" font-family="system-ui,sans-serif" font-size="112" font-weight="800">FlowCast</text><text x="96" y="370" fill="#e7eaf5" font-family="system-ui,sans-serif" font-size="44">Self-hosted radio automation</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">FlowCast — Self-hosted radio automation</title>
+<desc id="desc">FlowCast social preview with radio signal and product positioning.</desc>
+<defs>
+
+<linearGradient id="fc-gradient" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#67E8F9"/>
+  <stop offset="48%" stop-color="#22D3EE"/>
+  <stop offset="100%" stop-color="#8B5CF6"/>
+</linearGradient>
+
+
+<filter id="fc-glow" x="-50%" y="-50%" width="200%" height="200%">
+  <feGaussianBlur stdDeviation="4" result="blur"/>
+  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+
+<radialGradient id="bg-a" cx="82%" cy="12%" r="70%">
+  <stop offset="0%" stop-color="#251B55"/>
+  <stop offset="55%" stop-color="#090E21"/>
+  <stop offset="100%" stop-color="#050816"/>
+</radialGradient>
+<linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+  <stop stop-color="#151F42" stop-opacity=".95"/>
+  <stop offset="1" stop-color="#0A1025" stop-opacity=".95"/>
+</linearGradient>
+<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+  <path d="M40 0H0V40" fill="none" stroke="#8BA0CF" stroke-opacity=".08" stroke-width="1"/>
+</pattern>
+</defs>
+<rect width="1200" height="630" fill="url(#bg-a)"/>
+<rect width="1200" height="630" fill="url(#grid)"/>
+<circle cx="1040" cy="90" r="260" fill="#8B5CF6" opacity=".08"/>
+<circle cx="930" cy="560" r="300" fill="#22D3EE" opacity=".05"/>
+
+<g transform="translate(72 70)">
+  <rect x="0" y="0" width="126" height="126" rx="32" fill="#0E1630" stroke="#334568" stroke-width="4"/>
+  <path d="M32 91V34h55M32 61h43" fill="none" stroke="url(#fc-gradient)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="92" cy="92" r="10" fill="#22D3EE" filter="url(#fc-glow)"/>
+  <path d="M103 78c9 9 9 19 0 28M112 69c15 15 15 31 0 46" fill="none" stroke="#A78BFA" stroke-width="6" stroke-linecap="round"/>
+</g>
+
+<text x="232" y="160" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="76" font-weight="800" letter-spacing="-3" fill="#F4F7FF">FlowCast</text>
+<text x="75" y="282" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="58" font-weight="800" letter-spacing="-2" fill="#F4F7FF">
+  <tspan x="75" dy="0">Automate your radio.</tspan>
+  <tspan x="75" dy="72" fill="url(#fc-gradient)">Own the broadcast path.</tspan>
+</text>
+<text x="80" y="445" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="29" font-weight="500" fill="#AAB7D4">
+  Scheduling · Transitions · Rust playout · Icecast delivery
+</text>
+<g transform="translate(78 500)">
+  <rect width="530" height="58" rx="16" fill="url(#panel)" stroke="#334568"/>
+  <text x="24" y="38" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="22" fill="#67E8F9">Self-hosted · Docker Compose · Linux</text>
+</g>
+
+<g transform="translate(730 145)">
+  <rect width="400" height="330" rx="28" fill="url(#panel)" stroke="#334568" stroke-width="2"/>
+  <rect x="20" y="20" width="360" height="42" rx="12" fill="#101936"/>
+  <circle cx="42" cy="41" r="6" fill="#FB7185"/>
+  <circle cx="64" cy="41" r="6" fill="#FBBF24"/>
+  <circle cx="86" cy="41" r="6" fill="#4ADE80"/>
+  <text x="118" y="48" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" fill="#AAB7D4">FlowCast Control</text>
+  <rect x="28" y="82" width="344" height="86" rx="16" fill="#111B39" stroke="#26385F"/>
+  <text x="48" y="112" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" fill="#67E8F9">NOW PLAYING</text>
+  <rect x="48" y="128" width="180" height="12" rx="6" fill="#F4F7FF" opacity=".9"/>
+  <rect x="48" y="148" width="118" height="8" rx="4" fill="#AAB7D4" opacity=".55"/>
+  <circle cx="330" cy="126" r="22" fill="#22D3EE" opacity=".9"/>
+  <rect x="28" y="186" width="164" height="116" rx="16" fill="#111B39" stroke="#26385F"/>
+  <rect x="208" y="186" width="164" height="116" rx="16" fill="#111B39" stroke="#26385F"/>
+  <text x="48" y="216" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" fill="#A78BFA">UPCOMING</text>
+  <text x="228" y="216" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" fill="#67E8F9">SERVICES</text>
+  <rect x="48" y="235" width="120" height="9" rx="5" fill="#AAB7D4" opacity=".65"/>
+  <rect x="48" y="253" width="105" height="9" rx="5" fill="#AAB7D4" opacity=".45"/>
+  <circle cx="234" cy="246" r="6" fill="#4ADE80"/><rect x="248" y="241" width="84" height="9" rx="5" fill="#AAB7D4" opacity=".6"/>
+  <circle cx="234" cy="270" r="6" fill="#4ADE80"/><rect x="248" y="265" width="68" height="9" rx="5" fill="#AAB7D4" opacity=".6"/>
+</g>
+</svg>

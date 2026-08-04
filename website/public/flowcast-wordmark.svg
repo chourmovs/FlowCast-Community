@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" role="img" aria-labelledby="title desc">
+<title id="title">FlowCast</title>
+<desc id="desc">FlowCast logo and wordmark for self-hosted radio automation.</desc>
+<defs>
+<linearGradient id="fc-gradient" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0%" stop-color="#67E8F9"/>
+  <stop offset="48%" stop-color="#22D3EE"/>
+  <stop offset="100%" stop-color="#8B5CF6"/>
+</linearGradient>
+
+<filter id="fc-glow" x="-50%" y="-50%" width="200%" height="200%">
+  <feGaussianBlur stdDeviation="4" result="blur"/>
+  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+</defs>
+<rect x="8" y="8" width="204" height="204" rx="52" fill="#0E1630" stroke="#293A62" stroke-width="8"/>
+<path d="M56 150V62h86M56 101h65" fill="none" stroke="url(#fc-gradient)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="150" cy="150" r="15" fill="#22D3EE" filter="url(#fc-glow)"/>
+<path d="M168 128c14 14 14 29 0 44M183 114c23 23 23 48 0 71" fill="none" stroke="#A78BFA" stroke-width="10" stroke-linecap="round"/>
+<text x="252" y="136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="112" font-weight="800" letter-spacing="-4" fill="#F4F7FF">FlowCast</text>
+<text x="258" y="180" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="28" font-weight="600" letter-spacing="3" fill="#AAB7D4">SELF-HOSTED RADIO AUTOMATION</text>
+</svg>
