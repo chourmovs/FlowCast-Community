@@ -26,21 +26,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          test -f version.env
-          cat version.env >> "$GITHUB_ENV"
-
+      
           version="$(
-            sed -n \
-              's/^FLOWCAST_VERSION=//p' \
-              version.env
+            sed -n 's/^FLOWCAST_VERSION=//p' version.env
           )"
-
+      
           [[ -n "$version" ]] || {
-            echo "FLOWCAST_VERSION is missing"
+            echo "::error::FLOWCAST_VERSION is missing from version.env"
             exit 1
           }
-
+      
+          [[ "$(grep -c '^FLOWCAST_VERSION=' version.env)" -eq 1 ]] || {
+            echo "::error::version.env must contain exactly one FLOWCAST_VERSION assignment"
+            exit 1
+          }
+      
+          echo "FLOWCAST_VERSION=$version" >> "$GITHUB_ENV"
           echo "Resolved FlowCast version: $version"
 
       - name: Validate release request
