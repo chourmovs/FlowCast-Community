@@ -18,9 +18,7 @@ DEFAULT_VERSION="$(
 
 VERSION="${FLOWCAST_VERSION:-$DEFAULT_VERSION}"
 INSTALL_DIR="${FLOWCAST_HOME:-/opt/flowcast}"
-REPOSITORY="${
-  FLOWCAST_RELEASE_REPOSITORY:-chourmovs/FlowCast-Community
-}"
+REPOSITORY="${FLOWCAST_RELEASE_REPOSITORY:-chourmovs/FlowCast-Community}"
 RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"
 
 START=true
@@ -54,10 +52,10 @@ Options:
 
   --docker-control
       Explicitly enable Docker Control.
-      This option is retained as a backwards-compatible alias.
+      Retained as a backwards-compatible alias.
 
   --non-interactive
-      Fail instead of prompting or overwriting an existing installation.
+      Fail instead of overwriting an existing installation.
 
   --dry-run
       Validate the host and display the release assets without installing.
@@ -220,7 +218,9 @@ for command in \
   df \
   awk \
   sed \
-  mktemp
+  mktemp \
+  dirname \
+  hostname
 do
   need "$command"
 done
@@ -274,11 +274,7 @@ fi
 
 TAG="v$VERSION"
 ARCHIVE="flowcast-community-$TAG.tar.gz"
-
-BASE="${
-  RELEASE_BASE_URL:-
-  https://github.com/$REPOSITORY/releases/download/$TAG
-}"
+BASE="${RELEASE_BASE_URL:-https://github.com/$REPOSITORY/releases/download/$TAG}"
 
 log \
   "Preparing FlowCast $VERSION (linux/amd64) in $INSTALL_DIR"
@@ -390,6 +386,9 @@ archive_version="$(
     "$INSTALL_DIR/version.env" \
   | head -n 1
 )"
+
+[[ -n "$archive_version" ]] || die \
+  "The archived version.env does not define FLOWCAST_VERSION."
 
 [[ "$archive_version" == "$VERSION" ]] || die \
   "The archived version.env declares '$archive_version' instead of '$VERSION'."
