@@ -329,4 +329,3 @@ jobs:
             }
 
           echo "Rendered release version passed: $version"
-```
