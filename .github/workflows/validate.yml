@@ -1,33 +1,180 @@
 name: Validate
-on: [push, pull_request]
-permissions: {contents: read}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   public-package:
+    name: Validate Community package
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v7
-      - name: Audit repository
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Audit public repository
         run: |
           python3 scripts/audit-public-repository.py
           python3 scripts/audit-runtime-contract.py
-      - name: Documentation policy and links
+
+      - name: Validate documentation
         run: python3 scripts/docs/validate_docs.py
-      - name: Essential external links
+
+      - name: Check essential external links
+        shell: bash
         run: |
-          for url in https://github.com/chourmovs/FlowCast-Community/releases https://github.com/chourmovs/FlowCast-Community/security; do
-            curl --fail --silent --show-error --location --retry 2 --max-time 20 --head "$url" >/dev/null
+          set -euo pipefail
+
+          urls=(
+            "https://github.com/chourmovs/FlowCast-Community/releases"
+            "https://github.com/chourmovs/FlowCast-Community/security"
+          )
+
+          for url in "${urls[@]}"; do
+            echo "Checking ${url}"
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --location \
+              --retry 3 \
+              --retry-all-errors \
+              --connect-timeout 10 \
+              --max-time 30 \
+              "$url" \
+              --output /dev/null
           done
-      - name: Unit tests
+
+      - name: Run Python unit tests
         run: python3 -m unittest discover -s tests -v
-      - name: Shellcheck
-        run: shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
-      - name: Validate YAML
-        run: ruby -e 'require "yaml"; Dir["**/*.{yml,yaml}", ".github/**/*.{yml,yaml}"].uniq.each { |f| YAML.parse_file(f) }'
-      - name: Render Compose
+
+      - name: Run ShellCheck
         run: |
-          docker compose --env-file .env.example -f compose.yml config --quiet
-          FLOWCAST_DOCKER_GID=0 docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
-      - name: Verify version pinning and no builds
+          shellcheck \
+            install.sh \
+            scripts/community/*.sh \
+            scripts/lib/*.sh
+
+      - name: Validate YAML syntax
+        shell: bash
         run: |
-          ! grep -R --include='compose*.yml' -E '^\s*build:' .
-          ! grep -R --include='compose*.yml' -E 'image:.*:latest([[:space:]]|$)' .
+          ruby <<'RUBY'
+          require "yaml"
+
+          files = Dir[
+            "**/*.{yml,yaml}",
+            ".github/**/*.{yml,yaml}"
+          ].uniq
+
+          files.each do |file|
+            YAML.parse_file(file)
+            puts "Valid YAML: #{file}"
+          end
+          RUBY
+
+      - name: Render base Compose configuration
+        run: |
+          docker compose \
+            --env-file .env.example \
+            -f compose.yml \
+            config \
+            --quiet
+
+      - name: Render Docker Control configuration
+        env:
+          FLOWCAST_DOCKER_GID: "0"
+        run: |
+          docker compose \
+            --env-file .env.example \
+            -f compose.yml \
+            -f compose.docker-control.yml \
+            config \
+            --quiet
+
+      - name: Verify immutable image references
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if grep -R \
+            --include='compose*.yml' \
+            -nE '^[[:space:]]*build:' \
+            .; then
+            echo "::error::Compose files must not contain build directives."
+            exit 1
+          fi
+
+          if grep -R \
+            --include='compose*.yml' \
+            -nE 'image:.*:latest([[:space:]]|$)' \
+            .; then
+            echo "::error::Compose images must not use the latest tag."
+            exit 1
+          fi
+
+  website:
+    name: Validate Astro website
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        working-directory: website
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Resolve website lock graph
+        run: |
+          npm install \
+            --package-lock-only \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund
+
+      - name: Install website dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Check Astro project
+        run: npm run check
+
+      - name: Build Astro website
+        run: npm run build
+
+      - name: Verify generated website
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f dist/index.html
+          test -f dist/favicon.svg
+          test -f dist/flowcast-mark.svg
+          test -f dist/og-flowcast.svg
+          test -f dist/screenshots/Capture1.png
+
+          if grep -RInE \
+            '/FlowCast-Community(flowcast|screenshots)|src="/screenshots/|href="/favicon' \
+            dist; then
+            echo "::error::Invalid GitHub Pages asset path found."
+            exit 1
+          fi
