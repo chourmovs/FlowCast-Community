@@ -71,6 +71,26 @@ jobs:
           set -euo pipefail
           bash -n install.sh
 
+      - name: Check remote installer argument path
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          temp_directory="$(mktemp -d)"
+          trap 'rm -rf "$temp_directory"' EXIT
+
+          cp install.sh "$temp_directory/install.sh"
+
+          (
+            cd "$temp_directory"
+
+            bash ./install.sh \
+              --version "$FLOWCAST_VERSION" \
+              --dry-run \
+              --no-docker-control \
+              --install-dir "$temp_directory/flowcast"
+          )
+
       - name: Audit public repository
         run: |
           python3 scripts/audit-public-repository.py
@@ -90,6 +110,7 @@ jobs:
       - name: Run ShellCheck
         run: |
           shellcheck \
+            --severity=error \
             install.sh \
             scripts/community/*.sh \
             scripts/lib/*.sh
@@ -224,6 +245,14 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: website/package-lock.json
+
+      - name: Refresh package lock graph
+        run: |
+          npm install \
+            --package-lock-only \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund
 
       - name: Install website dependencies
         run: |
