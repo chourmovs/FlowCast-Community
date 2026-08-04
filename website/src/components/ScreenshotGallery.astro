@@ -1,14 +1,38 @@
 ---
-interface Shot { src:string; width:number; height:number; alt:string; caption:string }
+import { withBase } from '../lib/paths';
+
+interface Shot {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  caption: string;
+}
+
+interface Props {
+  limit?: number;
+}
+
 const shots: Shot[] = [
-{src:'flowcast-station-dashboard.png',width:1900,height:1079,alt:'FlowCast dashboard showing runtime health, resources, Now Playing and the upcoming queue',caption:'Station dashboard and live runtime overview.'},
-{src:'flowcast-playout-history.png',width:1900,height:912,alt:'FlowCast history view listing recently played tracks with dates and playlists',caption:'Searchable playout history.'},
-{src:'flowcast-media-library.png',width:1904,height:912,alt:'FlowCast media catalogue with upload, search, analysis and playlist controls',caption:'Media catalogue and audio-analysis status.'},
-{src:'flowcast-playlist-management.png',width:1902,height:821,alt:'FlowCast playlist list with settings, media editing and schedule actions',caption:'Playlist organisation and scheduling entry points.'},
-{src:'flowcast-transition-settings.png',width:1907,height:912,alt:'FlowCast audio settings for preprocessing, fades, silence detection and bridge overlap',caption:'Explicit audio and transition controls.'},
-{src:'flowcast-engine-supervision.png',width:1895,height:906,alt:'FlowCast engine settings for scheduler, prefetch, playback and output encoding',caption:'Scheduler and playout-engine supervision.'},
+  { src: 'Capture1.png', width: 1900, height: 1079, alt: 'FlowCast dashboard showing runtime health, resources, Now Playing and the upcoming queue', caption: 'Station dashboard and live runtime overview.' },
+  { src: 'Capture2.png', width: 1900, height: 912, alt: 'FlowCast history view listing recently played tracks with dates and playlists', caption: 'Searchable playout history.' },
+  { src: 'Capture3.png', width: 1904, height: 912, alt: 'FlowCast media catalogue with upload, search, analysis and playlist controls', caption: 'Media catalogue and audio-analysis status.' },
+  { src: 'Capture4.png', width: 1902, height: 821, alt: 'FlowCast playlist list with settings, media editing and schedule actions', caption: 'Playlist organisation and scheduling entry points.' },
+  { src: 'Capture7.png', width: 1907, height: 912, alt: 'FlowCast audio settings for preprocessing, fades, silence detection and bridge overlap', caption: 'Explicit audio and transition controls.' },
+  { src: 'Capture6.png', width: 1895, height: 906, alt: 'FlowCast engine settings for scheduler, prefetch, playback and output encoding', caption: 'Scheduler and playout-engine supervision.' },
 ];
+
 const { limit } = Astro.props;
 const visible = typeof limit === 'number' ? shots.slice(0, limit) : shots;
 ---
-<div class="gallery">{visible.map((shot, i) => <figure><a href={`/screenshots/${shot.src}`}><img src={`/screenshots/${shot.src}`} width={shot.width} height={shot.height} alt={shot.alt} loading={i === 0 && limit ? 'eager' : 'lazy'} decoding="async" /></a><figcaption>{shot.caption}</figcaption></figure>)}</div>
+
+<div class="gallery">
+  {visible.map((shot, i) => (
+    <figure>
+      <a href={withBase(`screenshots/${shot.src}`)}>
+        <img src={withBase(`screenshots/${shot.src}`)} width={shot.width} height={shot.height} alt={shot.alt} loading={i === 0 && limit ? 'eager' : 'lazy'} decoding="async" />
+      </a>
+      <figcaption>{shot.caption}</figcaption>
+    </figure>
+  ))}
+</div>

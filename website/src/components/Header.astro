@@ -1,4 +1,34 @@
 ---
-const nav: ReadonlyArray<readonly [string, string]> = [['/features','Features'],['/installation','Install'],['/screenshots','Screenshots'],['/community-vs-pro','Community vs Pro']];
+import { withBase } from '../lib/paths';
+const nav = [
+  { href: 'features', label: 'Features' },
+  { href: 'screenshots', label: 'Interface' },
+  { href: 'community-vs-pro', label: 'Community / Pro' },
+];
+const repository = 'https://github.com/chourmovs/FlowCast-Community';
 ---
-<header class="site-header"><div class="container nav-wrap"><a class="brand" href="/" aria-label="FlowCast home"><span aria-hidden="true">◉</span> FlowCast</a><nav aria-label="Main navigation">{nav.map(([href,label]) => <a href={href} aria-current={Astro.url.pathname === href ? 'page' : undefined}>{label}</a>)}<a class="github" href="https://github.com/chourmovs/FlowCast-Community">GitHub</a></nav></div></header>
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href={withBase()} aria-label="FlowCast home">
+      <img src={withBase('flowcast-mark.svg')} width="40" height="40" alt="" />
+      <span>FlowCast</span>
+    </a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      {nav.map((item) => <a href={withBase(item.href)}>{item.label}</a>)}
+      <a href={`${repository}/tree/main/docs`}>Documentation</a>
+    </nav>
+    <div class="header-actions">
+      <a class="button button-quiet" href={repository}>GitHub</a>
+      <a class="button button-small" href={withBase('installation')}>Install</a>
+    </div>
+    <details class="mobile-menu">
+      <summary aria-label="Open navigation"><span></span><span></span><span></span></summary>
+      <nav aria-label="Mobile navigation">
+        {nav.map((item) => <a href={withBase(item.href)}>{item.label}</a>)}
+        <a href={`${repository}/tree/main/docs`}>Documentation</a>
+        <a href={repository}>GitHub</a>
+        <a class="button" href={withBase('installation')}>Install FlowCast</a>
+      </nav>
+    </details>
+  </div>
+</header>
