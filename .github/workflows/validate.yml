@@ -44,7 +44,9 @@ jobs:
           }
 
           version="$(
-            sed -n 's/^FLOWCAST_VERSION=//p' version.env
+            sed -n \
+              's/^FLOWCAST_VERSION=//p' \
+              version.env
           )"
 
           [[ -n "$version" ]] || {
@@ -105,7 +107,9 @@ jobs:
 
       - name: Run Python unit tests
         run: |
-          python3 -m unittest discover -s tests -v
+          python3 -m unittest discover \
+            -s tests \
+            -v
 
       - name: Run ShellCheck
         run: |
@@ -219,7 +223,10 @@ jobs:
             fi
           done
 
-          if grep -n '^FLOWCAST_VERSION=' .env.example; then
+          if grep -n \
+            '^FLOWCAST_VERSION=' \
+            .env.example
+          then
             echo "::error::.env.example must not define FLOWCAST_VERSION."
             exit 1
           fi
@@ -276,6 +283,9 @@ jobs:
           required_files=(
             "dist/index.html"
             "dist/installation/index.html"
+            "dist/robots.txt"
+            "dist/sitemap-index.xml"
+            "dist/sitemap-0.xml"
             "dist/favicon.svg"
             "dist/flowcast-mark.svg"
             "dist/og-flowcast.svg"
@@ -292,6 +302,131 @@ jobs:
           done
 
           echo "Generated website files are present."
+
+      - name: Verify robots and sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          site_url="https://chourmovs.github.io/FlowCast-Community"
+          sitemap_url="$site_url/sitemap-index.xml"
+
+          grep \
+            --quiet \
+            --fixed-strings \
+            "User-agent: *" \
+            dist/robots.txt || {
+              echo "::error::robots.txt does not contain the default user-agent rule"
+              exit 1
+            }
+
+          grep \
+            --quiet \
+            --fixed-strings \
+            "Allow: /" \
+            dist/robots.txt || {
+              echo "::error::robots.txt does not allow crawling"
+              exit 1
+            }
+
+          grep \
+            --quiet \
+            --fixed-strings \
+            "Sitemap: $sitemap_url" \
+            dist/robots.txt || {
+              echo "::error::robots.txt does not reference the expected sitemap"
+              exit 1
+            }
+
+          grep \
+            --quiet \
+            --fixed-strings \
+            "$site_url/sitemap-0.xml" \
+            dist/sitemap-index.xml || {
+              echo "::error::sitemap-index.xml does not reference sitemap-0.xml"
+              exit 1
+            }
+
+          grep \
+            --quiet \
+            --fixed-strings \
+            "$site_url/" \
+            dist/sitemap-0.xml || {
+              echo "::error::sitemap-0.xml does not contain the FlowCast homepage"
+              exit 1
+            }
+
+          grep \
+            --quiet \
+            --fixed-strings \
+            "$site_url/installation" \
+            dist/sitemap-0.xml || {
+              echo "::error::sitemap-0.xml does not contain the installation page"
+              exit 1
+            }
+
+          if grep \
+            --recursive \
+            --line-number \
+            --fixed-strings \
+            "flowcast.spotycast.ovh" \
+            dist
+          then
+            echo "::error::Generated website still references the retired FlowCast domain"
+            exit 1
+          fi
+
+          echo "Robots and sitemap validation passed."
+
+      - name: Verify page SEO metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pages=(
+            "dist/index.html"
+            "dist/installation/index.html"
+          )
+
+          for page in "${pages[@]}"; do
+            grep \
+              --quiet \
+              --fixed-strings \
+              'rel="canonical"' \
+              "$page" || {
+                echo "::error::$page has no canonical link"
+                exit 1
+              }
+
+            grep \
+              --quiet \
+              --fixed-strings \
+              'name="robots"' \
+              "$page" || {
+                echo "::error::$page has no robots meta tag"
+                exit 1
+              }
+
+            grep \
+              --quiet \
+              --fixed-strings \
+              'rel="sitemap"' \
+              "$page" || {
+                echo "::error::$page has no sitemap discovery link"
+                exit 1
+              }
+
+            grep \
+              --quiet \
+              --fixed-strings \
+              '/FlowCast-Community/sitemap-index.xml' \
+              "$page" || {
+                echo "::error::$page references an invalid sitemap path"
+                exit 1
+              }
+          done
+
+          echo "Page SEO metadata validation passed."
 
       - name: Verify GitHub Pages asset paths
         shell: bash
@@ -313,7 +448,8 @@ jobs:
               --line-number \
               --fixed-strings \
               "$pattern" \
-              dist; then
+              dist
+            then
               echo "::error::Invalid GitHub Pages asset path found: $pattern"
               exit 1
             fi
