@@ -26,21 +26,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-      
-          version="$(
-            sed -n 's/^FLOWCAST_VERSION=//p' version.env
-          )"
-      
-          [[ -n "$version" ]] || {
-            echo "::error::FLOWCAST_VERSION is missing from version.env"
+
+          [[ -f version.env ]] || {
+            echo "::error::version.env is missing"
             exit 1
           }
-      
-          [[ "$(grep -c '^FLOWCAST_VERSION=' version.env)" -eq 1 ]] || {
+
+          assignment_count="$(
+            grep -c '^FLOWCAST_VERSION=' version.env || true
+          )"
+
+          [[ "$assignment_count" -eq 1 ]] || {
             echo "::error::version.env must contain exactly one FLOWCAST_VERSION assignment"
             exit 1
           }
-      
+
+          version="$(
+            sed -n \
+              's/^FLOWCAST_VERSION=//p' \
+              version.env
+          )"
+
+          [[ -n "$version" ]] || {
+            echo "::error::FLOWCAST_VERSION is empty"
+            exit 1
+          }
+
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] || {
+            echo "::error::Version must match X.Y.Z-rc.N"
+            exit 1
+          }
+
           echo "FLOWCAST_VERSION=$version" >> "$GITHUB_ENV"
           echo "Resolved FlowCast version: $version"
 
@@ -50,30 +66,34 @@ jobs:
           set -euo pipefail
 
           [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
-            echo "Releases must run from main"
-            exit 1
-          }
-
-          [[ "$FLOWCAST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] || {
-            echo "Version must match X.Y.Z-rc.N"
+            echo "::error::Releases must run from main"
             exit 1
           }
 
           if git rev-parse \
             "v$FLOWCAST_VERSION" \
-            >/dev/null 2>&1; then
-            echo "Tag v$FLOWCAST_VERSION already exists"
+            >/dev/null 2>&1
+          then
+            echo "::error::Tag v$FLOWCAST_VERSION already exists"
             exit 1
           fi
 
       - name: Audit and test public repository
+        env:
+          FLOWCAST_DOCKER_GID: "0"
+        shell: bash
         run: |
+          set -euo pipefail
+
+          bash -n install.sh
+
           python3 scripts/audit-public-repository.py
           python3 scripts/audit-runtime-contract.py
           python3 scripts/docs/validate_docs.py
           python3 -m unittest discover -s tests -v
 
           shellcheck \
+            --severity=error \
             install.sh \
             scripts/community/*.sh \
             scripts/lib/*.sh
@@ -85,7 +105,6 @@ jobs:
             config \
             --quiet
 
-          FLOWCAST_DOCKER_GID=0 \
           docker compose \
             --env-file .env.example \
             --env-file version.env \
@@ -110,7 +129,10 @@ jobs:
             > dist/images.lock
 
       - name: Build deterministic archive and manifest
+        shell: bash
         run: |
+          set -euo pipefail
+
           scripts/release/build-release.sh \
             "$FLOWCAST_VERSION"
 
