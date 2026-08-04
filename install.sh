@@ -7,14 +7,16 @@ SCRIPT_DIR="$(
 )"
 
 VERSION_ENV="$SCRIPT_DIR/version.env"
+DEFAULT_VERSION=""
 
-DEFAULT_VERSION="$(
-  sed -n \
-    's/^FLOWCAST_VERSION=//p' \
-    "$VERSION_ENV" \
-    2>/dev/null \
-  | head -n 1
-)"
+if [[ -f "$VERSION_ENV" ]]; then
+  DEFAULT_VERSION="$(
+    sed -n \
+      's/^FLOWCAST_VERSION=//p' \
+      "$VERSION_ENV" \
+    | head -n 1
+  )"
+fi
 
 VERSION="${FLOWCAST_VERSION:-$DEFAULT_VERSION}"
 INSTALL_DIR="${FLOWCAST_HOME:-/opt/flowcast}"
