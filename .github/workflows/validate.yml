@@ -1,3 +1,4 @@
+```yaml
 name: Validate
 
 on:
@@ -28,34 +29,90 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-      
-          version="$(
-            sed -n 's/^FLOWCAST_VERSION=//p' version.env
-          )"
-      
-          [[ -n "$version" ]] || {
-            echo "::error::FLOWCAST_VERSION is missing from version.env"
+
+          test -f version.env || {
+            echo "::error::version.env is missing"
             exit 1
           }
-      
-          [[ "$(grep -c '^FLOWCAST_VERSION=' version.env)" -eq 1 ]] || {
+
+          assignment_count="$(
+            grep -c '^FLOWCAST_VERSION=' version.env || true
+          )"
+
+          [[ "$assignment_count" -eq 1 ]] || {
             echo "::error::version.env must contain exactly one FLOWCAST_VERSION assignment"
             exit 1
           }
-      
+
+          version="$(
+            sed -n 's/^FLOWCAST_VERSION=//p' version.env
+          )"
+
+          [[ -n "$version" ]] || {
+            echo "::error::FLOWCAST_VERSION is empty"
+            exit 1
+          }
+
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]] || {
+            echo "::error::Invalid FLOWCAST_VERSION: $version"
+            exit 1
+          }
+
+          [[ "$version" != "latest" ]] || {
+            echo "::error::FLOWCAST_VERSION cannot use the mutable latest tag"
+            exit 1
+          }
+
           echo "FLOWCAST_VERSION=$version" >> "$GITHUB_ENV"
           echo "Resolved FlowCast version: $version"
 
+      - name: Check installer syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n install.sh
 
-
-
-      - name: Audit repository
+      - name: Audit public repository
         run: |
           python3 scripts/audit-public-repository.py
+
+      - name: Audit runtime contract
+        run: |
           python3 scripts/audit-runtime-contract.py
 
       - name: Validate documentation
-        run: python3 scripts/docs/validate_docs.py
+        run: |
+          python3 scripts/docs/validate_docs.py
+
+      - name: Run Python unit tests
+        run: |
+          python3 -m unittest discover -s tests -v
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck \
+            install.sh \
+            scripts/community/*.sh \
+            scripts/lib/*.sh
+
+      - name: Validate YAML syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ruby <<'RUBY'
+          require "yaml"
+
+          files = Dir[
+            "**/*.{yml,yaml}",
+            ".github/**/*.{yml,yaml}"
+          ].uniq.sort
+
+          files.each do |file|
+            YAML.parse_file(file)
+            puts "Valid YAML: #{file}"
+          end
+          RUBY
 
       - name: Check essential external links
         shell: bash
@@ -79,38 +136,11 @@ jobs:
               --retry-all-errors \
               --connect-timeout 10 \
               --max-time 30 \
-              "$url" \
-              --output /dev/null
+              --output /dev/null \
+              "$url"
           done
 
-      - name: Run Python unit tests
-        run: python3 -m unittest discover -s tests -v
-
-      - name: Run ShellCheck
-        run: |
-          shellcheck \
-            install.sh \
-            scripts/community/*.sh \
-            scripts/lib/*.sh
-
-      - name: Validate YAML
-        shell: bash
-        run: |
-          ruby <<'RUBY'
-          require "yaml"
-
-          files = Dir[
-            "**/*.{yml,yaml}",
-            ".github/**/*.{yml,yaml}"
-          ].uniq
-
-          files.each do |file|
-            YAML.parse_file(file)
-            puts "Valid YAML: #{file}"
-          end
-          RUBY
-
-      - name: Render base Compose
+      - name: Render base Compose configuration
         run: |
           docker compose \
             --env-file .env.example \
@@ -119,7 +149,7 @@ jobs:
             config \
             --quiet
 
-      - name: Render Docker Control Compose
+      - name: Render Docker Control configuration
         env:
           FLOWCAST_DOCKER_GID: "0"
         run: |
@@ -138,9 +168,9 @@ jobs:
 
           if grep -R \
             --include='compose*.yml' \
-            -nE '^[[:space:]]*build:' \
+            -nE '^[[:space:]]*build[[:space:]]*:' \
             .; then
-            echo "::error::Compose files must not contain build directives."
+            echo "::error::Public Compose files must not contain build directives."
             exit 1
           fi
 
@@ -148,9 +178,33 @@ jobs:
             --include='compose*.yml' \
             -nE 'image:.*:latest([[:space:]]|$)' \
             .; then
-            echo "::error::Compose images must not use latest."
+            echo "::error::Compose images must not use the mutable latest tag."
             exit 1
           fi
+
+      - name: Verify version source uniqueness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          forbidden_files=(
+            "VERSION"
+            "versions.env"
+          )
+
+          for file in "${forbidden_files[@]}"; do
+            if [[ -e "$file" ]]; then
+              echo "::error::$file must not exist. version.env is the single version source."
+              exit 1
+            fi
+          done
+
+          if grep -n '^FLOWCAST_VERSION=' .env.example; then
+            echo "::error::.env.example must not define FLOWCAST_VERSION."
+            exit 1
+          fi
+
+          echo "Version source uniqueness passed."
 
   website:
     name: Validate Astro website
@@ -172,37 +226,108 @@ jobs:
           cache: npm
           cache-dependency-path: website/package-lock.json
 
-      - name: Resolve package lock graph
+      - name: Install website dependencies
         run: |
-          npm install \
-            --package-lock-only \
-            --ignore-scripts \
+          npm ci \
             --no-audit \
             --no-fund
 
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
       - name: Check Astro project
-        run: npm run check
+        run: |
+          npm run check
 
       - name: Build Astro website
-        run: npm run build
+        run: |
+          npm run build
 
       - name: Verify generated site
         shell: bash
         run: |
           set -euo pipefail
 
-          test -f dist/index.html
-          test -f dist/favicon.svg
-          test -f dist/flowcast-mark.svg
-          test -f dist/og-flowcast.svg
-          test -f dist/screenshots/Capture1.png
+          required_files=(
+            "dist/index.html"
+            "dist/installation/index.html"
+            "dist/favicon.svg"
+            "dist/flowcast-mark.svg"
+            "dist/og-flowcast.svg"
+            "dist/screenshots/Capture1.png"
+            "dist/screenshots/Capture3.png"
+            "dist/screenshots/Capture7.png"
+          )
 
-          if grep -RInE \
-            '/FlowCast-Community(flowcast|screenshots)|src="/screenshots/|href="/favicon' \
-            dist; then
-            echo "::error::Invalid GitHub Pages asset path."
+          for file in "${required_files[@]}"; do
+            [[ -f "$file" ]] || {
+              echo "::error::Generated website file is missing: $file"
+              exit 1
+            }
+          done
+
+          echo "Generated website files are present."
+
+      - name: Verify GitHub Pages asset paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          invalid_patterns=(
+            '/FlowCast-Communityflowcast'
+            '/FlowCast-Communityscreenshots'
+            'src="/screenshots/'
+            'href="/favicon'
+            'src="/flowcast-mark'
+            'content="/og-flowcast'
+          )
+
+          for pattern in "${invalid_patterns[@]}"; do
+            if grep \
+              --recursive \
+              --line-number \
+              --fixed-strings \
+              "$pattern" \
+              dist; then
+              echo "::error::Invalid GitHub Pages asset path found: $pattern"
+              exit 1
+            fi
+          done
+
+          echo "GitHub Pages asset paths passed."
+
+      - name: Verify rendered release version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="$(
+            sed -n \
+              's/^FLOWCAST_VERSION=//p' \
+              ../version.env
+          )"
+
+          [[ -n "$version" ]] || {
+            echo "::error::FLOWCAST_VERSION is missing from version.env"
             exit 1
-          fi
+          }
+
+          grep \
+            --recursive \
+            --quiet \
+            --fixed-strings \
+            "$version" \
+            dist || {
+              echo "::error::Generated website does not contain FlowCast version $version"
+              exit 1
+            }
+
+          grep \
+            --recursive \
+            --quiet \
+            --fixed-strings \
+            "v$version/install.sh" \
+            dist || {
+              echo "::error::Generated website does not contain the tagged installer URL"
+              exit 1
+            }
+
+          echo "Rendered release version passed: $version"
+```
