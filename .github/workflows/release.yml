@@ -3,10 +3,6 @@ name: Community prerelease
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Release candidate version
-        required: true
-        type: string
       publish:
         description: Create the public GitHub prerelease
         type: boolean
@@ -18,61 +14,140 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v7
-        with: {fetch-depth: 0}
-      - name: Validate release request
-        env:
-          VERSION: ${{ inputs.version }}
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load FlowCast version
+        shell: bash
         run: |
           set -euo pipefail
-          [[ "$GITHUB_REF" == refs/heads/main ]] || { echo 'Releases must run from main'; exit 1; }
-          [[ "$VERSION" =~ ^0\.1\.0-rc\.[0-9]+$ ]] || { echo 'Version must match 0.1.0-rc.<number>'; exit 1; }
-          ! git rev-parse "v$VERSION" >/dev/null 2>&1 || { echo "Tag v$VERSION already exists"; exit 1; }
+
+          test -f version.env
+          cat version.env >> "$GITHUB_ENV"
+
+          version="$(
+            sed -n \
+              's/^FLOWCAST_VERSION=//p' \
+              version.env
+          )"
+
+          [[ -n "$version" ]] || {
+            echo "FLOWCAST_VERSION is missing"
+            exit 1
+          }
+
+          echo "Resolved FlowCast version: $version"
+
+      - name: Validate release request
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
+            echo "Releases must run from main"
+            exit 1
+          }
+
+          [[ "$FLOWCAST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] || {
+            echo "Version must match X.Y.Z-rc.N"
+            exit 1
+          }
+
+          if git rev-parse \
+            "v$FLOWCAST_VERSION" \
+            >/dev/null 2>&1; then
+            echo "Tag v$FLOWCAST_VERSION already exists"
+            exit 1
+          fi
+
       - name: Audit and test public repository
         run: |
           python3 scripts/audit-public-repository.py
           python3 scripts/audit-runtime-contract.py
+          python3 scripts/docs/validate_docs.py
           python3 -m unittest discover -s tests -v
-          shellcheck install.sh scripts/community/*.sh scripts/lib/*.sh
-          docker compose --env-file .env.example -f compose.yml config --quiet
-          FLOWCAST_DOCKER_GID=0 docker compose --env-file .env.example -f compose.yml -f compose.docker-control.yml config --quiet
+
+          shellcheck \
+            install.sh \
+            scripts/community/*.sh \
+            scripts/lib/*.sh
+
+          docker compose \
+            --env-file .env.example \
+            --env-file version.env \
+            -f compose.yml \
+            config \
+            --quiet
+
+          FLOWCAST_DOCKER_GID=0 \
+          docker compose \
+            --env-file .env.example \
+            --env-file version.env \
+            -f compose.yml \
+            -f compose.docker-control.yml \
+            config \
+            --quiet
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Inspect public linux/amd64 images anonymously
-        env:
-          VERSION: ${{ inputs.version }}
+        shell: bash
         run: |
           set -euo pipefail
+
           docker logout ghcr.io >/dev/null 2>&1 || true
           mkdir -p dist
-          scripts/release/inspect-images.sh "$VERSION" > dist/images.lock
+
+          scripts/release/inspect-images.sh \
+            "$FLOWCAST_VERSION" \
+            > dist/images.lock
+
       - name: Build deterministic archive and manifest
-        env:
-          VERSION: ${{ inputs.version }}
-        run: scripts/release/build-release.sh "$VERSION"
+        run: |
+          scripts/release/build-release.sh \
+            "$FLOWCAST_VERSION"
+
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
           path: dist/stage
           output-file: dist/sbom.spdx.json
           upload-artifact: false
-      - uses: actions/upload-artifact@v7
+
+      - name: Upload qualification artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: flowcast-community-v${{ inputs.version }}
+          name: flowcast-community-v${{ env.FLOWCAST_VERSION }}
           if-no-files-found: error
           path: |
-            dist/flowcast-community-v${{ inputs.version }}.tar.gz
+            dist/flowcast-community-v${{ env.FLOWCAST_VERSION }}.tar.gz
             dist/checksums.sha256
             dist/images.lock
             dist/release-manifest.json
             dist/sbom.spdx.json
+
       - name: Publish public prerelease
         if: ${{ inputs.publish }}
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
+        shell: bash
         run: |
-          gh release create "v$VERSION" --target "$GITHUB_SHA" --prerelease --title "FlowCast Community v$VERSION" \
-            --notes "Beta preview for linux/amd64 only; not production-grade." \
-            "dist/flowcast-community-v$VERSION.tar.gz" dist/checksums.sha256 dist/images.lock dist/release-manifest.json dist/sbom.spdx.json
+          set -euo pipefail
+
+          gh release create \
+            "v$FLOWCAST_VERSION" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "FlowCast Community v$FLOWCAST_VERSION" \
+            --notes "Preview for linux/amd64 only; not production-grade." \
+            "dist/flowcast-community-v$FLOWCAST_VERSION.tar.gz" \
+            dist/checksums.sha256 \
+            dist/images.lock \
+            dist/release-manifest.json \
+            dist/sbom.spdx.json
