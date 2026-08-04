@@ -1,4 +1,4 @@
 ---
-const nav = [['/features','Features'],['/installation','Install'],['/screenshots','Screenshots'],['/community-vs-pro','Community vs Pro']];
+const nav: ReadonlyArray<readonly [string, string]> = [['/features','Features'],['/installation','Install'],['/screenshots','Screenshots'],['/community-vs-pro','Community vs Pro']];
 ---
 <header class="site-header"><div class="container nav-wrap"><a class="brand" href="/" aria-label="FlowCast home"><span aria-hidden="true">◉</span> FlowCast</a><nav aria-label="Main navigation">{nav.map(([href,label]) => <a href={href} aria-current={Astro.url.pathname === href ? 'page' : undefined}>{label}</a>)}<a class="github" href="https://github.com/chourmovs/FlowCast-Community">GitHub</a></nav></div></header>
