@@ -2,12 +2,23 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEFAULT_VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || true)"
+VERSION_ENV="$SCRIPT_DIR/version.env"
+
+DEFAULT_VERSION="$(
+  sed -n \
+    's/^FLOWCAST_VERSION=//p' \
+    "$VERSION_ENV" \
+    2>/dev/null \
+  | head -n 1
+)"
+
 VERSION="${FLOWCAST_VERSION:-$DEFAULT_VERSION}"
 INSTALL_DIR="${FLOWCAST_HOME:-/opt/flowcast}"
 REPOSITORY="${FLOWCAST_RELEASE_REPOSITORY:-chourmovs/FlowCast-Community}"
 RELEASE_BASE_URL="${FLOWCAST_RELEASE_BASE_URL:-}"
 START=true; DRY_RUN=false; DOCKER_CONTROL=true; NON_INTERACTIVE=false
+[[ -n "$VERSION" ]] || die \
+  "No release version was provided and version.env is missing or invalid."
 
 usage() {
   cat <<'EOF'
@@ -89,7 +100,16 @@ manifest_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/
 mkdir -p "$INSTALL_DIR" || die "Cannot create $INSTALL_DIR; run this script with permissions suitable for /opt/flowcast."
 tar -xzf "$TMP/$ARCHIVE" -C "$INSTALL_DIR"
 cp "$TMP/release-manifest.json" "$TMP/images.lock" "$INSTALL_DIR/"
-for required in compose.yml compose.docker-control.yml scripts/community/doctor.sh scripts/community/credentials.sh; do [[ -e "$INSTALL_DIR/$required" ]] || die "Release archive is missing $required."; done
+for required in \
+  compose.yml \
+  compose.docker-control.yml \
+  version.env \
+  scripts/community/doctor.sh \
+  scripts/community/credentials.sh
+do
+  [[ -e "$INSTALL_DIR/$required" ]] \
+    || die "Release archive is missing $required."
+done
 
 secret() { openssl rand -hex 24; }
 umask 077
