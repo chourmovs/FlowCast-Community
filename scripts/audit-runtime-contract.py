@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Audit the rendered public Compose runtime contract.
+"""Audit the rendered FlowCast Community Compose runtime contract.
 
-The FlowCast release version has a single source of truth:
+The current release version is read exclusively from:
 
-    .env.example -> FLOWCAST_VERSION
-
-The Compose files, runtime-contract audit and release tooling must consume that
-value instead of maintaining independent hard-coded versions.
+    version.env -> FLOWCAST_VERSION
 """
 
 from __future__ import annotations
@@ -21,6 +18,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+VERSION_ENV = ROOT / "version.env"
 ENV_EXAMPLE = ROOT / ".env.example"
 COMPOSE_FILE = ROOT / "compose.yml"
 DOCKER_CONTROL_FILE = ROOT / "compose.docker-control.yml"
@@ -42,14 +40,8 @@ VERSION_PATTERN = re.compile(
 
 
 def read_env_file(path: Path) -> dict[str, str]:
-    """Read a simple KEY=VALUE environment file.
-
-    This parser intentionally supports the syntax used by `.env.example` and
-    does not attempt to implement shell expansion.
-    """
-
     if not path.is_file():
-        raise RuntimeError(f"Environment file is missing: {path}")
+        raise RuntimeError(f"Required environment file is missing: {path}")
 
     values: dict[str, str] = {}
 
@@ -73,7 +65,7 @@ def read_env_file(path: Path) -> dict[str, str]:
 
         if not key:
             raise RuntimeError(
-                f"{path}:{line_number}: empty environment variable name"
+                f"{path}:{line_number}: empty variable name"
             )
 
         if (
@@ -88,33 +80,29 @@ def read_env_file(path: Path) -> dict[str, str]:
     return values
 
 
-def release_version(environment: dict[str, str]) -> str:
-    """Return and validate the unique FlowCast release version."""
-
-    version = environment.get("FLOWCAST_VERSION", "").strip()
+def current_version() -> str:
+    values = read_env_file(VERSION_ENV)
+    version = values.get("FLOWCAST_VERSION", "").strip()
 
     if not version:
         raise RuntimeError(
-            "FLOWCAST_VERSION must be defined in .env.example"
+            "FLOWCAST_VERSION must be defined in version.env"
         )
 
     if not VERSION_PATTERN.fullmatch(version):
         raise RuntimeError(
-            "FLOWCAST_VERSION has an invalid version format: "
-            f"{version!r}"
+            f"Invalid FLOWCAST_VERSION in version.env: {version!r}"
         )
 
     if version == "latest":
         raise RuntimeError(
-            "FLOWCAST_VERSION must be immutable and cannot be 'latest'"
+            "FLOWCAST_VERSION cannot use the mutable 'latest' tag"
         )
 
     return version
 
 
 def expected_images(version: str) -> dict[str, str]:
-    """Build the expected immutable image references."""
-
     return {
         "storage-init": (
             f"ghcr.io/chourmovs/flowcast-engine:{version}"
@@ -137,40 +125,30 @@ def expected_images(version: str) -> dict[str, str]:
     }
 
 
-def render(
-    environment_values: dict[str, str],
-    *compose_files: str,
-) -> dict[str, Any]:
-    """Render one or more Compose files as JSON."""
+def compose_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    environment.update(read_env_file(ENV_EXAMPLE))
+    environment.update(read_env_file(VERSION_ENV))
+    return environment
 
+
+def render(*compose_files: str) -> dict[str, Any]:
     command = [
         "docker",
         "compose",
         "--env-file",
         str(ENV_EXAMPLE),
+        "--env-file",
+        str(VERSION_ENV),
     ]
 
     for compose_file in compose_files:
-        command.extend(
-            [
-                "-f",
-                str(ROOT / compose_file),
-            ]
-        )
+        command.extend(["-f", str(ROOT / compose_file)])
 
-    command.extend(
-        [
-            "config",
-            "--format",
-            "json",
-        ]
-    )
+    command.extend(["config", "--format", "json"])
 
-    environment = os.environ.copy()
-    environment.update(environment_values)
+    environment = compose_environment()
 
-    # Docker Control requires a socket GID in real deployments. A harmless
-    # render-only value is supplied in CI without weakening the runtime check.
     if "compose.docker-control.yml" in compose_files:
         environment["FLOWCAST_DOCKER_GID"] = "0"
 
@@ -184,7 +162,7 @@ def render(
         )
     except FileNotFoundError as error:
         raise RuntimeError(
-            "Docker or Docker Compose is not available"
+            "Docker or Docker Compose is unavailable"
         ) from error
     except subprocess.CalledProcessError as error:
         detail = (
@@ -192,7 +170,6 @@ def render(
             or error.stdout.strip()
             or str(error)
         )
-
         raise RuntimeError(
             f"Compose render failed: {detail}"
         ) from error
@@ -206,15 +183,13 @@ def render(
 
     if not isinstance(rendered, dict):
         raise RuntimeError(
-            "Docker Compose JSON root must be an object"
+            "Rendered Compose root must be an object"
         )
 
     return rendered
 
 
 def flattened(value: Any) -> str:
-    """Return stable JSON text for broad contract searches."""
-
     return json.dumps(
         value,
         sort_keys=True,
@@ -225,8 +200,6 @@ def flattened(value: Any) -> str:
 def find_dependency_cycle(
     services: dict[str, Any],
 ) -> bool:
-    """Return True when the Compose dependency graph contains a cycle."""
-
     visiting: set[str] = set()
     visited: set[str] = set()
 
@@ -239,22 +212,24 @@ def find_dependency_cycle(
 
         visiting.add(name)
 
-        dependencies = services.get(name, {}).get(
+        depends_on = services.get(name, {}).get(
             "depends_on",
             {},
         )
 
-        if isinstance(dependencies, list):
-            dependency_names = dependencies
-        elif isinstance(dependencies, dict):
-            dependency_names = dependencies.keys()
+        if isinstance(depends_on, dict):
+            dependencies = depends_on.keys()
+        elif isinstance(depends_on, list):
+            dependencies = depends_on
         else:
-            dependency_names = []
+            dependencies = []
 
-        for dependency in dependency_names:
+        for dependency in dependencies:
+            dependency_name = str(dependency)
+
             if (
-                dependency in services
-                and visit(str(dependency))
+                dependency_name in services
+                and visit(dependency_name)
             ):
                 return True
 
@@ -262,17 +237,12 @@ def find_dependency_cycle(
         visited.add(name)
         return False
 
-    return any(
-        visit(service_name)
-        for service_name in services
-    )
+    return any(visit(name) for name in services)
 
 
-def volume_targets(
+def collect_volume_targets(
     services: dict[str, Any],
 ) -> set[str]:
-    """Collect all container-side volume targets."""
-
     targets: set[str] = set()
 
     for service in services.values():
@@ -280,11 +250,13 @@ def volume_targets(
             continue
 
         for volume in service.get("volumes", []):
-            if isinstance(volume, dict):
-                target = volume.get("target")
+            if not isinstance(volume, dict):
+                continue
 
-                if isinstance(target, str):
-                    targets.add(target)
+            target = volume.get("target")
+
+            if isinstance(target, str):
+                targets.add(target)
 
     return targets
 
@@ -295,39 +267,31 @@ def audit(
     source: str,
     images: dict[str, str],
 ) -> list[str]:
-    """Return all runtime-contract violations."""
-
     errors: list[str] = []
 
     services = main.get("services", {})
 
     if not isinstance(services, dict):
-        return ["rendered Compose services must be an object"]
+        return ["rendered services must be an object"]
 
     actual_services = set(services)
 
-    if actual_services != EXPECTED_SERVICES:
-        missing = sorted(
-            EXPECTED_SERVICES - actual_services
+    missing_services = EXPECTED_SERVICES - actual_services
+    unexpected_services = actual_services - EXPECTED_SERVICES
+
+    if missing_services:
+        errors.append(
+            f"required services are missing: "
+            f"{sorted(missing_services)}"
         )
-        unexpected = sorted(
-            actual_services - EXPECTED_SERVICES
+
+    if unexpected_services:
+        errors.append(
+            f"unexpected services are present: "
+            f"{sorted(unexpected_services)}"
         )
 
-        if missing:
-            errors.append(
-                f"required services are missing: {missing}"
-            )
-
-        if unexpected:
-            errors.append(
-                f"unexpected services are present: {unexpected}"
-            )
-
-    if re.search(
-        r"(?m)^[ \t]*build[ \t]*:",
-        source,
-    ):
+    if re.search(r"(?m)^[ \t]*build[ \t]*:", source):
         errors.append(
             "build directives are forbidden in public Compose"
         )
@@ -346,7 +310,7 @@ def audit(
 
         if not isinstance(service, dict):
             errors.append(
-                f"{service_name} has an invalid service definition"
+                f"{service_name} has an invalid definition"
             )
             continue
 
@@ -371,16 +335,11 @@ def audit(
             "audio-daemon entrypoint command is incorrect"
         )
 
-    expected_analyzer_healthcheck = [
+    if analyzer.get("healthcheck", {}).get("test") != [
         "CMD",
         "/usr/local/bin/flowcast-analyzer",
         "--healthcheck",
-    ]
-
-    if (
-        analyzer.get("healthcheck", {}).get("test")
-        != expected_analyzer_healthcheck
-    ):
+    ]:
         errors.append(
             "audio-daemon must use the analyzer CLI healthcheck"
         )
@@ -392,40 +351,27 @@ def audit(
             "engine entrypoint command is incorrect"
         )
 
-    expected_engine_healthcheck = [
+    if engine.get("healthcheck", {}).get("test") != [
         "CMD",
         "/usr/local/bin/flowcast-engine",
         "--healthcheck",
-    ]
-
-    if (
-        engine.get("healthcheck", {}).get("test")
-        != expected_engine_healthcheck
-    ):
+    ]:
         errors.append(
             "engine must use the strict engine CLI healthcheck"
         )
 
-    engine_start_period = (
-        engine.get("healthcheck", {})
-        .get("start_period")
-    )
-
-    if engine_start_period not in {
-        "2m0s",
-        "120s",
-    }:
+    if engine.get("healthcheck", {}).get(
+        "start_period"
+    ) not in {"120s", "2m0s"}:
         errors.append(
             "engine healthcheck must preserve a "
             "120-second bootstrap grace period"
         )
 
-    control_ports = control.get("ports", [])
-
     if not any(
         isinstance(port, dict)
         and port.get("target") == 8088
-        for port in control_ports
+        for port in control.get("ports", [])
     ):
         errors.append(
             "control must expose container port 8088"
@@ -441,10 +387,7 @@ def audit(
             "bliss healthcheck must use port 8090"
         )
 
-    engine_environment = engine.get(
-        "environment",
-        {},
-    )
+    engine_environment = engine.get("environment", {})
 
     if (
         not isinstance(engine_environment, dict)
@@ -462,7 +405,7 @@ def audit(
             "retired internal ports 8091 and 8092 are forbidden"
         )
 
-    targets = volume_targets(services)
+    targets = collect_volume_targets(services)
 
     retired_targets = {
         "/media",
@@ -471,26 +414,23 @@ def audit(
         "/analysis",
     }
 
-    remaining_retired_targets = (
-        targets & retired_targets
-    )
+    found_retired_targets = targets & retired_targets
 
-    if remaining_retired_targets:
+    if found_retired_targets:
         errors.append(
-            "retired volume targets remain: "
-            f"{sorted(remaining_retired_targets)}"
+            f"retired volume targets remain: "
+            f"{sorted(found_retired_targets)}"
         )
 
-    required_targets = {
+    for required_target in (
         "/data/flowcast-media",
         "/data/analysis",
         "/flowcast",
-    }
-
-    for target in sorted(required_targets):
-        if target not in targets:
+    ):
+        if required_target not in targets:
             errors.append(
-                f"required volume target is missing: {target}"
+                f"required volume target is missing: "
+                f"{required_target}"
             )
 
     if "/var/run/docker.sock" in rendered_main:
@@ -509,13 +449,8 @@ def audit(
         {},
     )
 
-    override_environment = override_control.get(
-        "environment",
-        {},
-    )
-
     if (
-        override_environment.get(
+        override_control.get("environment", {}).get(
             "FLOWCAST_DOCKER_CONTROL_ENABLED"
         )
         != "true"
@@ -536,10 +471,8 @@ def audit(
             "the Docker socket"
         )
 
-    docker_control_source = (
-        DOCKER_CONTROL_FILE.read_text(
-            encoding="utf-8"
-        )
+    docker_control_source = DOCKER_CONTROL_FILE.read_text(
+        encoding="utf-8"
     )
 
     if "${FLOWCAST_DOCKER_GID" not in docker_control_source:
@@ -548,12 +481,10 @@ def audit(
             "dynamically detected socket GID"
         )
 
-    control_dependencies = control.get(
+    storage_dependency = control.get(
         "depends_on",
         {},
-    )
-
-    storage_dependency = control_dependencies.get(
+    ).get(
         "storage-init",
         {},
     )
@@ -577,25 +508,16 @@ def audit(
 
 def main() -> int:
     try:
-        environment_values = read_env_file(
-            ENV_EXAMPLE
-        )
-        version = release_version(
-            environment_values
-        )
+        version = current_version()
         images = expected_images(version)
 
         source = COMPOSE_FILE.read_text(
             encoding="utf-8"
         )
 
-        main_compose = render(
-            environment_values,
-            "compose.yml",
-        )
+        main_compose = render("compose.yml")
 
         docker_control_compose = render(
-            environment_values,
             "compose.yml",
             "compose.docker-control.yml",
         )
@@ -606,10 +528,7 @@ def main() -> int:
             source,
             images,
         )
-    except (
-        OSError,
-        RuntimeError,
-    ) as error:
+    except (OSError, RuntimeError) as error:
         print(
             f"runtime contract: {error}",
             file=sys.stderr,
@@ -626,7 +545,7 @@ def main() -> int:
         return 1
 
     print(
-        "Runtime contract audit passed "
+        f"Runtime contract audit passed "
         f"for FlowCast {version}."
     )
     return 0
