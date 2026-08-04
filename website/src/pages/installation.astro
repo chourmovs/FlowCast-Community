@@ -1,5 +1,223 @@
+```astro
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  flowcastVersion,
+  installCommand,
+} from '../lib/version';
+
+const repository =
+  'https://github.com/chourmovs/FlowCast-Community';
+
+const updateCommand =
+  `sudo /opt/flowcast/scripts/community/update.sh --version ${flowcastVersion}`;
 ---
-<BaseLayout title="Install FlowCast on Linux with Docker" description="Install the FlowCast Community preview on Linux amd64, review ports and Docker socket risk, then verify your first Icecast broadcast."><section class="page container"><header class="page-head"><p class="eyebrow">INSTALLATION</p><h1>Install FlowCast Community</h1><p>The validated preview installer targets an operator-managed Linux amd64 host. Review the installer and security model before running it.</p></header><div class="prose"><h2>Prerequisites</h2><ul><li>Linux amd64, Docker Engine and Docker Compose v2</li><li>2 CPU cores, at least 4 GB RAM and 10 GB free disk plus media</li><li>Free TCP ports <strong>8080</strong> (control/player proxy) and <strong>8010</strong> (direct Icecast)</li></ul><h2>Run the validated tagged installer</h2><pre><code>curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.7/install.sh | sudo bash -s -- --version 0.1.0-rc.7</code></pre><p>The installer does not install Docker. It verifies the release archive, writes <code>/opt/flowcast</code>, generates a mode-<code>0600</code> <code>.env</code>, pulls versioned service images and waits for health. Existing environment files are not overwritten.</p><aside class="notice"><strong>Root-equivalent Docker access</strong><p>The default validated rc.7 install enables Docker Control. Mounting the Docker socket gives its container root-level control of the host. Never expose the control UI to untrusted users. Pass <code>--no-docker-control</code> to opt out; UI Start/Stop/Restart actions then remain unavailable.</p></aside><h2>Open the interface and broadcast</h2><ol><li>Open <code>http://localhost:8080</code> and use the locally generated credentials.</li><li>Import audio you own or are permitted to use.</li><li>Create or select a playlist and configure its programming.</li><li>Start playout when Docker Control is enabled.</li><li>Listen through <code>/listen/test.mp3</code>, or directly at <code>http://HOST:8010/test.mp3</code>.</li></ol><p>Follow the <a href="https://github.com/chourmovs/FlowCast-Community/blob/main/docs/how-to/first-broadcast.md">complete first-broadcast guide</a>.</p><h2>Diagnose, update and roll back</h2><pre><code>sudo /opt/flowcast/scripts/community/doctor.sh
-sudo /opt/flowcast/scripts/community/update.sh --version VERSION</code></pre><p>Back up before changes. The update script supports controlled version changes; use the documented backup/restore path for deliberate rollback. Read <a href="https://github.com/chourmovs/FlowCast-Community/blob/main/docs/community/update-rollback.md">update and rollback</a>, <a href="https://github.com/chourmovs/FlowCast-Community/blob/main/docs/community/backup-restore.md">backup and restore</a>, and <a href="https://github.com/chourmovs/FlowCast-Community/blob/main/docs/community/known-limitations.md">known limitations</a>.</p></div></section></BaseLayout>
+
+<BaseLayout
+  title="Install FlowCast on Linux with Docker"
+  description={`Install FlowCast Community ${flowcastVersion} on Linux amd64, review ports and Docker socket risk, then verify your first Icecast broadcast.`}
+>
+  <section class="page container">
+    <header class="page-head">
+      <p class="eyebrow">
+        INSTALLATION · {flowcastVersion}
+      </p>
+
+      <h1>Install FlowCast Community</h1>
+
+      <p>
+        The current validated installer targets an
+        operator-managed Linux amd64 host. Review the
+        installer and security model before running it.
+      </p>
+    </header>
+
+    <div class="prose">
+      <h2>Prerequisites</h2>
+
+      <ul>
+        <li>
+          Linux amd64, Docker Engine and Docker Compose v2
+        </li>
+
+        <li>
+          2 CPU cores, at least 4 GB RAM and 10 GB free disk
+          plus media storage
+        </li>
+
+        <li>
+          Free TCP ports <strong>8080</strong> for the
+          control/player proxy and <strong>8010</strong> for
+          direct Icecast access
+        </li>
+
+        <li>
+          The standard command-line tools required by the
+          installer, including <code>curl</code>,
+          <code>openssl</code>, <code>tar</code> and
+          <code>sha256sum</code>
+        </li>
+      </ul>
+
+      <h2>Run the validated tagged installer</h2>
+
+      <p>
+        Current validated Community release:
+        <strong><code>{flowcastVersion}</code></strong>.
+      </p>
+
+      <pre><code>{installCommand}</code></pre>
+
+      <p>
+        The installer does not install Docker. It verifies
+        the release archive, writes
+        <code>/opt/flowcast</code>, generates a
+        mode-<code>0600</code> <code>.env</code>, pulls
+        immutable versioned service images and waits for
+        service health.
+      </p>
+
+      <p>
+        An existing installation environment is not silently
+        overwritten. Back up before updating or replacing an
+        installation.
+      </p>
+
+      <aside class="notice">
+        <strong>Root-equivalent Docker access</strong>
+
+        <p>
+          The standard <code>{flowcastVersion}</code>
+          installation enables Docker Control. Mounting the
+          Docker socket gives the control container
+          effectively root-level authority over the host.
+        </p>
+
+        <p>
+          Never expose the control interface to untrusted
+          users. Pass <code>--no-docker-control</code> to opt
+          out. Start, Stop and Restart actions in the
+          interface are then unavailable, while the
+          Community broadcast path remains usable through
+          the normal Compose lifecycle.
+        </p>
+      </aside>
+
+      <h2>Review the installer first</h2>
+
+      <p>
+        For a more conservative installation process, download
+        and inspect the tagged script before running it:
+      </p>
+
+      <pre><code>{`curl -fsSLO https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v${flowcastVersion}/install.sh
+less install.sh
+sudo bash install.sh --version ${flowcastVersion}`}</code></pre>
+
+      <h2>Open the interface and broadcast</h2>
+
+      <ol>
+        <li>
+          Open <code>http://localhost:8080</code>, or the LAN
+          address displayed by the installer.
+        </li>
+
+        <li>
+          Sign in with the locally generated credentials.
+        </li>
+
+        <li>
+          Import audio that you own or are permitted to store
+          and broadcast.
+        </li>
+
+        <li>
+          Create or select a playlist and configure its
+          programming.
+        </li>
+
+        <li>
+          Start playout when Docker Control is enabled.
+        </li>
+
+        <li>
+          Listen through
+          <code>/listen/test.mp3</code> on the control origin,
+          or directly through
+          <code>http://HOST:8010/test.mp3</code>.
+        </li>
+
+        <li>
+          Run the diagnostic command and confirm that it ends
+          with <code>RESULT=PASS</code>.
+        </li>
+      </ol>
+
+      <pre><code>sudo /opt/flowcast/scripts/community/doctor.sh</code></pre>
+
+      <p>
+        Follow the
+        <a
+          href={`${repository}/blob/main/docs/how-to/first-broadcast.md`}
+        >
+          complete first-broadcast guide
+        </a>.
+      </p>
+
+      <h2>Diagnose, update and roll back</h2>
+
+      <pre><code>{`sudo /opt/flowcast/scripts/community/doctor.sh
+sudo /opt/flowcast/scripts/community/backup.sh
+${updateCommand}`}</code></pre>
+
+      <p>
+        Back up before every version change. The update
+        tooling preserves the installation’s credentials,
+        persistent volumes and explicit Docker Control
+        choice, subject to the release-specific compatibility
+        notes.
+      </p>
+
+      <p>
+        Use the documented backup and restore path for
+        deliberate recovery or rollback. Preview releases do
+        not guarantee downgrade-compatible persisted state.
+      </p>
+
+      <ul>
+        <li>
+          <a
+            href={`${repository}/blob/main/docs/community/update-rollback.md`}
+          >
+            Update and rollback
+          </a>
+        </li>
+
+        <li>
+          <a
+            href={`${repository}/blob/main/docs/community/backup-restore.md`}
+          >
+            Backup and restore
+          </a>
+        </li>
+
+        <li>
+          <a
+            href={`${repository}/blob/main/docs/community/known-limitations.md`}
+          >
+            Known limitations
+          </a>
+        </li>
+
+        <li>
+          <a
+            href={`${repository}/blob/main/SECURITY.md`}
+          >
+            Security policy
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+```
