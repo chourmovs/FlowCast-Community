@@ -1,44 +1,85 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const VERSION_PATTERN =
   /^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$/;
 
-function resolveRepositoryRoot(): string {
-  return path.resolve(process.cwd(), '..');
-}
+const currentDirectory = path.dirname(
+  fileURLToPath(import.meta.url),
+);
+
+const repositoryRoot = path.resolve(
+  currentDirectory,
+  '..',
+  '..',
+  '..',
+);
+
+const versionPath = path.join(
+  repositoryRoot,
+  'version.env',
+);
 
 function readVersionEnvironment(): string {
-  const versionPath = path.join(
-    resolveRepositoryRoot(),
-    'version.env',
-  );
+  if (!fs.existsSync(versionPath)) {
+    throw new Error(
+      `version.env was not found at ${versionPath}`,
+    );
+  }
 
-  const content = fs.readFileSync(
-    versionPath,
-    'utf-8',
-  );
-
-  const matches = content
+  const assignments = fs
+    .readFileSync(versionPath, 'utf-8')
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) =>
-      line.startsWith('FLOWCAST_VERSION='),
+    .filter(
+      (line) =>
+        line.length > 0 &&
+        !line.startsWith('#') &&
+        line.startsWith('FLOWCAST_VERSION='),
     );
 
-  if (matches.length !== 1) {
+  if (assignments.length !== 1) {
     throw new Error(
       'version.env must contain exactly one FLOWCAST_VERSION assignment',
     );
   }
 
-  const version = matches[0]
-    .split('=', 2)[1]
+  const assignment = assignments.at(0);
+
+  if (!assignment) {
+    throw new Error(
+      'FLOWCAST_VERSION assignment could not be read',
+    );
+  }
+
+  const separatorIndex = assignment.indexOf('=');
+
+  if (separatorIndex < 0) {
+    throw new Error(
+      'FLOWCAST_VERSION must use KEY=VALUE syntax',
+    );
+  }
+
+  const version = assignment
+    .slice(separatorIndex + 1)
     .trim();
+
+  if (!version) {
+    throw new Error(
+      'FLOWCAST_VERSION cannot be empty',
+    );
+  }
 
   if (!VERSION_PATTERN.test(version)) {
     throw new Error(
       `Invalid FLOWCAST_VERSION: ${version}`,
+    );
+  }
+
+  if (version === 'latest') {
+    throw new Error(
+      'FLOWCAST_VERSION cannot use the mutable latest tag',
     );
   }
 
