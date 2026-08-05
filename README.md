@@ -8,7 +8,7 @@ Its scheduler, audio analysis services and dedicated Rust playout engine are des
 
 **Automate · Broadcast · Stay independent**
 
-[🎧 Listen to the live station](https://chourmovs.github.io/FlowCast-Community/) · [Install FlowCast](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
+[🎧 Listen to the live station](http://radio.chouproxai.duckdns.org/api/public/stations/rub-a-dub_mix) · [Install FlowCast](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
 
 [![Release](https://img.shields.io/github/v/release/chourmovs/FlowCast-Community?display_name=tag)](https://github.com/chourmovs/FlowCast-Community/releases)
 [![Validate](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml/badge.svg)](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml)
