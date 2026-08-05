@@ -1,14 +1,5 @@
 ---
+import { site } from '../config/site';
 import { withBase } from '../lib/paths';
-const repo = 'https://github.com/chourmovs/FlowCast-Community';
 ---
-<footer class="site-footer">
-  <div class="container footer-grid">
-    <div class="footer-intro"><a class="brand" href={withBase()}><img src={withBase('flowcast-mark.svg')} width="40" height="40" alt="" /><span>FlowCast</span></a><p>Self-hosted radio automation with an explicit scheduling, Rust playout and Icecast delivery path.</p></div>
-    <nav aria-label="Product links"><strong>Product</strong><a href={withBase('features')}>Features</a><a href={withBase('screenshots')}>Interface</a><a href={withBase('community-vs-pro')}>Community / Pro</a></nav>
-    <nav aria-label="Documentation links"><strong>Documentation</strong><a href={withBase('installation')}>Installation</a><a href={`${repo}/tree/main/docs`}>Architecture</a><a href={`${repo}/blob/main/SECURITY.md`}>Security</a></nav>
-    <nav aria-label="Project links"><strong>Project</strong><a href={repo}>GitHub</a><a href={`${repo}/releases`}>Releases</a><a href={`${repo}/blob/main/LICENSE`}>Licences</a></nav>
-    <nav aria-label="Legal links"><strong>Legal</strong><a href={withBase('privacy')}>Privacy</a><a href={withBase('azuracast-alternative')}>Project comparison</a></nav>
-  </div>
-  <div class="container legal">FlowCast is provided without warranty. AzuraCast and Liquidsoap are independent projects; no affiliation or endorsement is implied.</div>
-</footer>
+<footer class="site-footer"><div class="container footer-compact"><a class="brand" href={withBase()}><img src={withBase('flowcast-mark.svg')} width="36" height="36" alt="" /><span class="brand-text"><strong>FlowCast</strong><small>Radio Automation</small></span></a><p>{site.signature}</p><nav aria-label="Footer links"><a href={site.repository}>GitHub</a><a href={site.docs}>Documentation</a><a href={site.releases}>Releases</a><a href={site.security}>Security</a><a href={site.support}>Support</a><a href={withBase('privacy')}>Legal</a></nav></div></footer>
