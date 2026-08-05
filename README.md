@@ -1,21 +1,53 @@
-# Self-hosted radio automation, scheduling and playout — under your control.
+# FlowCast Radio Automation
 
-**FlowCast is a self-hosted radio automation, scheduling and playout platform built for operators who want full control over their broadcast infrastructure.** Community packages the authenticated control plane and versioned broadcast services for an operator-managed Linux host. The service images are separately licensed, and this repository does not claim that their source is open.
+**Self-hosted radio automation, intelligent scheduling and dedicated audio playout — under your control.**
+
+FlowCast is a self-hosted radio automation platform for operators who want to schedule, automate and broadcast an Icecast station without maintaining a Liquidsoap scripting layer.
+
+Its scheduler, audio analysis services and dedicated Rust playout engine are designed as one system, with configurable transitions, BPM-aware programming and optional Bliss-powered acoustic similarity.
 
 **Automate · Broadcast · Stay independent**
 
-[Website](https://chourmovs.github.io/FlowCast-Community/) · [Quick Start](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
+[🎧 Listen to the live station](https://chourmovs.github.io/FlowCast-Community/) · [Install FlowCast](#installation) · [Documentation](docs/README.md) · [Releases](https://github.com/chourmovs/FlowCast-Community/releases) · [Security](SECURITY.md) · [Support](SUPPORT.md)
 
 [![Release](https://img.shields.io/github/v/release/chourmovs/FlowCast-Community?display_name=tag)](https://github.com/chourmovs/FlowCast-Community/releases)
 [![Validate](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml/badge.svg)](https://github.com/chourmovs/FlowCast-Community/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/repository-MIT-22D3EE.svg)](LICENSE)
 ![Platform: Linux amd64](https://img.shields.io/badge/platform-linux%2Famd64-8B5CF6)
+![Status: Community Preview](https://img.shields.io/badge/status-community%20preview-F59E0B)
+
+> **Live demonstration**
+>
+> The public station page is powered by FlowCast and lets you hear the playout engine while inspecting the current track and station activity.
+>
+> **[Open the live FlowCast station →](https://chourmovs.github.io/FlowCast-Community/)**
+>
+> Availability is provided on a best-effort basis and may be interrupted during preview deployments or maintenance.
+
+FlowCast Community packages the installer, deployment contracts, documentation and authenticated control plane required to operate the versioned broadcast services on an operator-managed Linux host. The service images are separately licensed; this repository does not claim that their source code is open.
+
+---
+
+## What FlowCast does
+
+FlowCast provides the complete path from an operator-owned media library to a continuously programmed Icecast stream:
+
+1. import and analyse audio;
+2. organise tracks into playlists;
+3. define schedules and programming rules;
+4. build a coherent upcoming queue;
+5. apply configurable transitions;
+6. play and encode the audio through the dedicated engine;
+7. distribute the stream through Icecast;
+8. expose Now Playing, upcoming tracks, history, logs and diagnostics.
+
+The objective is not simply to shuffle tracks without silence. FlowCast is designed to make an automated station sound deliberately programmed.
 
 ---
 
 ## Why FlowCast is different
 
-FlowCast is not simply a web interface placed in front of a generic streaming script. Its scheduler, audio analysis and playout engine are designed together as a complete radio automation system.
+FlowCast is not simply a web interface placed in front of a generic streaming script. Its scheduler, audio analysis and playout engine are developed together as a complete radio automation system.
 
 ### No Liquidsoap scripting layer
 
@@ -33,7 +65,7 @@ This means:
 - fewer abstraction layers between the control interface and the audio engine;
 - a playout runtime developed specifically around FlowCast's scheduling model.
 
-You configure the desired broadcast behaviour—not the implementation script behind it.
+You configure the desired broadcast behaviour — not the implementation script behind it.
 
 ### Transitions are a first-class feature
 
@@ -50,7 +82,7 @@ Transition parameters can be tuned to shape the identity of the station:
 
 The objective is not merely to avoid silence. It is to give operators precise control over how one track hands over to the next.
 
-A continuous radio stream should sound programmed—not shuffled.
+**A continuous radio stream should sound programmed — not shuffled.**
 
 ### Music-aware programming
 
@@ -97,6 +129,20 @@ FlowCast does not try to hide a traditional radio stack behind another abstracti
 
 ---
 
+## Who FlowCast is for
+
+FlowCast is intended for:
+
+- self-hosters operating their own radio infrastructure;
+- web radio operators who want explicit control over scheduling and playout;
+- music enthusiasts building a curated continuous station;
+- associations, collectives and small broadcasters;
+- developers and operators looking for a self-hosted Icecast automation stack without Liquidsoap scripting.
+
+FlowCast Community is currently distributed as a **Community Preview**. It is suitable for evaluation, experimentation and operator-managed deployments where preview limitations and best-effort support are acceptable.
+
+---
+
 ## Core capabilities
 
 ### FlowCast Community
@@ -105,7 +151,7 @@ The Community edition provides the complete autonomous broadcast path:
 
 - authenticated station control;
 - media library management;
-- playlist creation and organization;
+- playlist creation and organisation;
 - scheduled programming;
 - BPM-aware music selection;
 - configurable track transitions;
@@ -126,12 +172,14 @@ Community starts and broadcasts without a paid licence and without a mandatory r
 FlowCast Pro builds on the Community broadcast foundation with optional advanced capabilities, including:
 
 - Bliss-driven acoustic similarity;
-- music-aware sequence optimization;
+- music-aware sequence optimisation;
 - advanced transition and programming strategies;
 - additional operational or fleet-oriented services when officially documented;
 - commercial licensing and support options.
 
 Pro remains optional. The Community broadcast path must continue operating independently if Pro is not configured or its licensing service is unavailable.
+
+---
 
 ## Screenshots
 
@@ -229,11 +277,15 @@ Explore the FlowCast control plane, from station configuration and media managem
 
 See the [capture and publication procedure](docs/assets/screenshots/README.md).
 
+---
+
 ## Community Edition
 
 Community works without a paid licence, starts and broadcasts without a mandatory remote licence call, retains the essential broadcast path, and receives best-effort community support.
 
 Pro is optional and separately licensed. No undefined Pro feature is promised. Read [Community versus Pro](docs/community/community-vs-pro.md).
+
+---
 
 ## Installation
 
@@ -245,11 +297,11 @@ Pro is optional and separately licensed. No undefined Pro feature is promised. R
 curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.7/install.sh | sudo bash -s -- --version 0.1.0-rc.7
 ```
 
-The tagged command installs the release declared in `version.env`. That file is the repository’s single source of truth for the current FlowCast Community release. Automated validation blocks a pull request when the command above diverges from `version.env`.
+The tagged command installs the release declared in `version.env`. That file is the repository's single source of truth for the current FlowCast Community release. Automated validation blocks a pull request when the command above diverges from `version.env`.
 
 The installer writes `/opt/flowcast`, generates local credentials, pulls immutable versioned service images and waits for service health. It does not install Docker.
 
-> **Security note:** the standard install enables Docker Control. Mounting the Docker socket is equivalent to granting root-level host control to the control container. Use `--no-docker-control` to opt out, and never expose the control UI to untrusted users. See [Security](SECURITY.md).
+> **Security note:** the standard installation enables Docker Control. Mounting the Docker socket is equivalent to granting root-level host control to the control container. Use `--no-docker-control` to opt out, and never expose the control UI to untrusted users. See [Security](SECURITY.md).
 
 ### Review the installer before execution
 
@@ -258,6 +310,8 @@ curl -fsSLO https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.
 less install.sh
 sudo bash install.sh --version 0.1.0-rc.7
 ```
+
+---
 
 ## First broadcast
 
@@ -282,6 +336,8 @@ RESULT=PASS
 
 Follow the complete [first broadcast guide](docs/how-to/first-broadcast.md).
 
+---
+
 ## Updating
 
 Create a backup before changing versions:
@@ -295,6 +351,8 @@ sudo /opt/flowcast/scripts/community/doctor.sh
 The updater preserves credentials, persistent volumes and the explicit Docker Control choice, subject to the compatibility notes of the target release.
 
 Preview releases do not guarantee downgrade-compatible persisted state. Read [Update and rollback](docs/community/update-rollback.md) and [Backup and restore](docs/community/backup-restore.md).
+
+---
 
 ## Architecture
 
@@ -314,6 +372,8 @@ flowchart TD
 
 Control, orchestration, analysis, audio playout, distribution and named-volume storage are isolated roles. Details are in [Architecture](docs/community/architecture.md).
 
+---
+
 ## Community versus Pro
 
 | Community | Pro |
@@ -322,6 +382,8 @@ Control, orchestration, analysis, audio playout, distribution and named-volume s
 | Essential control, scheduling, playout, streaming and operations | May add separately documented advanced functions or services |
 | Best-effort community support | Commercial terms apply only when explicitly offered |
 | Continues operating if an optional Pro licensing service is unavailable | Pro entitlement failure must not interrupt Community broadcasting |
+
+---
 
 ## Documentation
 
@@ -333,6 +395,8 @@ Control, orchestration, analysis, audio playout, distribution and named-volume s
 - **Troubleshooting:** [Stream troubleshooting](docs/how-to/troubleshoot-stream.md), [known limitations](docs/community/known-limitations.md)
 
 Browse the complete [documentation index](docs/README.md).
+
+---
 
 ## Version management
 
@@ -357,6 +421,8 @@ Static documents such as this README cannot evaluate environment files when rend
 
 Historical documentation may mention older releases when describing migrations or compatibility. Those references are not current release sources.
 
+---
+
 ## Legal and licensing
 
 Repository scripts and documentation are MIT licensed. FlowCast Community OCI images use the licence declared in their published image metadata. Third-party components retain their own licences. Pro uses separate commercial terms, and trademark rights are separate.
@@ -365,9 +431,13 @@ Review the [licensing guide](docs/legal/licensing.md), [third-party notices](THI
 
 The software is supplied without warranty. Operators remain responsible for infrastructure, data, broadcasts and applicable rights.
 
+---
+
 ## Built with
 
 FlowCast's distributed runtime uses Python, Rust, FastAPI, NiceGUI, GStreamer, FFmpeg, Icecast, bliss-audio, SQLite and Docker. Each remains an independent project under its own terms.
+
+---
 
 ## Acknowledgements
 
@@ -375,12 +445,14 @@ We thank the maintainers and contributors of the technologies that make self-hos
 
 See [Acknowledgements](ACKNOWLEDGEMENTS.md) and [Third-party notices](THIRD_PARTY_NOTICES.md). No third-party affiliation or endorsement is implied.
 
+---
+
 ## Contributing and support
 
-Use [issues](https://github.com/chourmovs/FlowCast-Community/issues) for reproducible sanitized bugs and feature requests.
+Use [issues](https://github.com/chourmovs/FlowCast-Community/issues) for reproducible, sanitised bugs and feature requests.
 
 Use [Discussions](https://github.com/chourmovs/FlowCast-Community/discussions), when enabled, for community questions.
 
 Read [Contributing](CONTRIBUTING.md) and [Support](SUPPORT.md).
 
-Report vulnerabilities only through [private security reporting](SECURITY.md)—never in a public issue.
+Report vulnerabilities only through [private security reporting](SECURITY.md) — never in a public issue.
