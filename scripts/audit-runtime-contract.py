@@ -104,24 +104,12 @@ def current_version() -> str:
 
 def expected_images(version: str) -> dict[str, str]:
     return {
-        "storage-init": (
-            f"ghcr.io/chourmovs/flowcast-engine:{version}"
-        ),
-        "control": (
-            f"ghcr.io/chourmovs/flowcast-control:{version}"
-        ),
-        "engine": (
-            f"ghcr.io/chourmovs/flowcast-engine:{version}"
-        ),
-        "audio-daemon": (
-            f"ghcr.io/chourmovs/flowcast-analyzer:{version}"
-        ),
-        "bliss": (
-            f"ghcr.io/chourmovs/flowcast-bliss:{version}"
-        ),
-        "icecast": (
-            f"ghcr.io/chourmovs/flowcast-icecast:{version}"
-        ),
+        "storage-init": f"ghcr.io/chourmovs/flowcast-engine:{version}",
+        "control": f"ghcr.io/chourmovs/flowcast-control:{version}",
+        "engine": f"ghcr.io/chourmovs/flowcast-engine:{version}",
+        "audio-daemon": f"ghcr.io/chourmovs/flowcast-analyzer:{version}",
+        "bliss": f"ghcr.io/chourmovs/flowcast-bliss:{version}",
+        "icecast": f"ghcr.io/chourmovs/flowcast-icecast:{version}",
     }
 
 
@@ -240,23 +228,31 @@ def find_dependency_cycle(
     return any(visit(name) for name in services)
 
 
+def volume_map(service: Any) -> dict[str, dict[str, Any]]:
+    if not isinstance(service, dict):
+        return {}
+
+    result: dict[str, dict[str, Any]] = {}
+
+    for volume in service.get("volumes", []):
+        if not isinstance(volume, dict):
+            continue
+
+        target = volume.get("target")
+
+        if isinstance(target, str):
+            result[target] = volume
+
+    return result
+
+
 def collect_volume_targets(
     services: dict[str, Any],
 ) -> set[str]:
     targets: set[str] = set()
 
     for service in services.values():
-        if not isinstance(service, dict):
-            continue
-
-        for volume in service.get("volumes", []):
-            if not isinstance(volume, dict):
-                continue
-
-            target = volume.get("target")
-
-            if isinstance(target, str):
-                targets.add(target)
+        targets.update(volume_map(service))
 
     return targets
 
@@ -275,20 +271,17 @@ def audit(
         return ["rendered services must be an object"]
 
     actual_services = set(services)
-
     missing_services = EXPECTED_SERVICES - actual_services
     unexpected_services = actual_services - EXPECTED_SERVICES
 
     if missing_services:
         errors.append(
-            f"required services are missing: "
-            f"{sorted(missing_services)}"
+            f"required services are missing: {sorted(missing_services)}"
         )
 
     if unexpected_services:
         errors.append(
-            f"unexpected services are present: "
-            f"{sorted(unexpected_services)}"
+            f"unexpected services are present: {sorted(unexpected_services)}"
         )
 
     if re.search(r"(?m)^[ \t]*build[ \t]*:", source):
@@ -297,8 +290,7 @@ def audit(
         )
 
     if re.search(
-        r"(?m)^[ \t]*image[ \t]*:.*:latest"
-        r"(?:[ \t]|$)",
+        r"(?m)^[ \t]*image[ \t]*:.*:latest(?:[ \t]|$)",
         source,
     ):
         errors.append(
@@ -327,6 +319,7 @@ def audit(
     engine = services.get("engine", {})
     control = services.get("control", {})
     bliss = services.get("bliss", {})
+    icecast = services.get("icecast", {})
 
     if analyzer.get("command") != [
         "/usr/local/bin/flowcast-analyzer-entrypoint.sh"
@@ -426,11 +419,75 @@ def audit(
         "/data/flowcast-media",
         "/data/analysis",
         "/flowcast",
+        "/data/flowcast-backups",
+        "/data/icecast",
     ):
         if required_target not in targets:
             errors.append(
                 f"required volume target is missing: "
                 f"{required_target}"
+            )
+
+    # RC8 full-backup/restore workers inspect the control container and
+    # require these persistent mounts to exist as actual Docker mounts.
+    control_volumes = volume_map(control)
+
+    for target in (
+        "/flowcast",
+        "/data/flowcast-media",
+        "/data/flowcast-backups",
+        "/data/flowcast",
+        "/data/engine_history",
+    ):
+        if target not in control_volumes:
+            errors.append(
+                f"control is missing RC8 worker mount: {target}"
+            )
+
+    # Station statistics ingest Icecast's persistent access.log read-only.
+    icecast_volumes = volume_map(icecast)
+
+    if "/data/icecast" not in icecast_volumes:
+        errors.append(
+            "icecast must persist access logs at /data/icecast"
+        )
+
+    stats_volume = control_volumes.get("/data/icecast")
+
+    if stats_volume is None:
+        errors.append(
+            "control must mount Icecast logs at /data/icecast"
+        )
+    elif not bool(stats_volume.get("read_only")):
+        errors.append(
+            "control Icecast-log mount must be read-only"
+        )
+
+    control_environment = control.get("environment", {})
+
+    if not isinstance(control_environment, dict):
+        errors.append(
+            "control environment must be an object"
+        )
+    else:
+        if str(
+            control_environment.get(
+                "FLOWCAST_STATISTICS_SESSION_RETENTION_DAYS",
+                "",
+            )
+        ) != "365":
+            errors.append(
+                "statistics session retention must default to 365 days"
+            )
+
+        if str(
+            control_environment.get(
+                "FLOWCAST_STATISTICS_SAMPLE_RETENTION_DAYS",
+                "",
+            )
+        ) != "90":
+            errors.append(
+                "statistics sample retention must default to 90 days"
             )
 
     if "/var/run/docker.sock" in rendered_main:

@@ -39,7 +39,10 @@ FlowCast provides the complete path from an operator-owned media library to a co
 5. apply configurable transitions;
 6. play and encode the audio through the dedicated engine;
 7. distribute the stream through Icecast;
-8. expose Now Playing, upcoming tracks, history, logs and diagnostics.
+8. expose Now Playing, upcoming tracks, history, logs and diagnostics;
+9. publish listener-safe station pages and embeddable widgets;
+10. observe station-scoped audience statistics;
+11. create portable backups and perform guarded restores.
 
 The objective is not simply to shuffle tracks without silence. FlowCast is designed to make an automated station sound deliberately programmed.
 
@@ -80,37 +83,13 @@ Transition parameters can be tuned to shape the identity of the station:
 - queue and prefetch behaviour;
 - transition-aware playout decisions.
 
-The objective is not merely to avoid silence. It is to give operators precise control over how one track hands over to the next.
-
 **A continuous radio stream should sound programmed — not shuffled.**
 
 ### Music-aware programming
 
-Traditional rotation systems primarily select tracks from rules, categories, clocks or random pools. FlowCast can also use information extracted from the audio itself.
-
-#### BPM-driven programming
-
-FlowCast can use track tempo as part of the scheduling and selection process.
-
-BPM-aware programming helps build sequences with more coherent changes in pace and energy, reducing abrupt transitions between tracks that satisfy the same playlist rules but do not naturally follow each other.
-
-Tempo does not replace editorial rules. It adds a musical signal to them.
-
-#### Bliss-driven programming with FlowCast Pro
+FlowCast can use track tempo as part of the scheduling and selection process. BPM-aware programming helps build sequences with more coherent changes in pace and energy while keeping editorial rules in control.
 
 FlowCast Pro can extend music-aware selection using acoustic similarity features produced through Bliss analysis.
-
-Instead of considering only metadata such as genre, artist or BPM, Bliss-driven selection can compare characteristics extracted directly from the audio signal to identify tracks that are musically compatible.
-
-This creates the foundation for:
-
-- similarity-aware track selection;
-- smoother musical progression;
-- more coherent automatic sequencing;
-- reduced repetition of tracks with overly similar profiles;
-- programming driven by both editorial constraints and acoustic distance.
-
-Community provides the autonomous broadcast foundation. Pro adds deeper music-intelligence capabilities without replacing the operator's programming strategy.
 
 ---
 
@@ -125,8 +104,6 @@ Community provides the autonomous broadcast foundation. Pro adds deeper music-in
 | Troubleshooting often requires inspecting generated scripts | Runtime state, history, logs and diagnostics exposed through FlowCast |
 | Changes may require editing or regenerating playout code | Station behaviour configured without writing playout scripts |
 
-FlowCast does not try to hide a traditional radio stack behind another abstraction layer. It replaces that layer with a purpose-built scheduling and playout architecture.
-
 ---
 
 ## Who FlowCast is for
@@ -139,7 +116,7 @@ FlowCast is intended for:
 - associations, collectives and small broadcasters;
 - developers and operators looking for a self-hosted Icecast automation stack without Liquidsoap scripting.
 
-FlowCast Community is currently distributed as a **Community Preview**. It is suitable for evaluation, experimentation and operator-managed deployments where preview limitations and best-effort support are acceptable.
+FlowCast Community is currently distributed as a **Community Preview**.
 
 ---
 
@@ -158,10 +135,17 @@ The Community edition provides the complete autonomous broadcast path:
 - dedicated Rust playout engine;
 - audio analysis;
 - Icecast stream delivery;
-- Now Playing and upcoming-track information;
-- engine history;
-- backup and restore;
-- controlled updates and rollback;
+- Now Playing, upcoming-track information and engine history;
+- public station pages with listener-safe programming data;
+- embeddable player, recently played, upcoming and listener-count widgets;
+- three genuine player layouts: Normal, Compact and Minimal;
+- station-scoped audience statistics with real-time, trends and reports;
+- country, player-family and device-family audience breakdowns;
+- Essential `.fcbak` backups;
+- Full backups including media;
+- resumable backup uploads with Pause/Resume/Cancel;
+- transactional restore with pre-restore snapshot and rollback safeguards;
+- controlled updates and host-level rollback;
 - installation diagnostics through `doctor.sh`;
 - optional Docker Control for service operations.
 
@@ -177,7 +161,29 @@ FlowCast Pro builds on the Community broadcast foundation with optional advanced
 - additional operational or fleet-oriented services when officially documented;
 - commercial licensing and support options.
 
-Pro remains optional. The Community broadcast path must continue operating independently if Pro is not configured or its licensing service is unavailable.
+Pro remains optional. The Community broadcast path continues operating independently if Pro is not configured or its licensing service is unavailable.
+
+---
+
+## New in RC8
+
+### Backup & Restore
+
+RC8 adds portable Essential and Full `.fcbak` archives. Full backups can include the media library and run as persistent isolated jobs. Large archive uploads are resumable, and restore is guarded by validation, capacity checks, media locking, a pre-restore snapshot and an automatic rollback attempt.
+
+### Station Statistics
+
+The Statistics page is station-scoped and backed by real Icecast activity. It provides Overview, Real-Time and History & Reports views with listener sessions, time-series samples, trends, countries, players and devices.
+
+Icecast logs are persisted locally and mounted read-only into the control plane. Listener identifiers are derived locally with HMAC-SHA256; raw listener IP addresses are not stored by the statistics subsystem.
+
+### Public station pages and widgets
+
+Public station programming can expose Now Playing, recently played and upcoming tracks without leaking internal paths. External sites can embed a player, history, upcoming list or listener count.
+
+Normal, Compact and Minimal players are structurally different components rather than the same player merely resized.
+
+See [RC8 highlights and runtime notes](docs/community/rc8.md).
 
 ---
 
@@ -187,93 +193,24 @@ Explore the FlowCast control plane, from station configuration and media managem
 
 <table>
   <tr>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture1.png">
-        <img
-          src="docs/assets/screenshots/Capture1.png"
-          alt="FlowCast dashboard showing station status, Now Playing and the upcoming queue"
-          width="100%"
-        >
-      </a>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture2.png">
-        <img
-          src="docs/assets/screenshots/Capture2.png"
-          alt="FlowCast playout history showing recently broadcast tracks"
-          width="100%"
-        >
-      </a>
-    </td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture1.png"><img src="docs/assets/screenshots/Capture1.png" alt="FlowCast dashboard showing station status, Now Playing and the upcoming queue" width="100%"></a></td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture2.png"><img src="docs/assets/screenshots/Capture2.png" alt="FlowCast playout history showing recently broadcast tracks" width="100%"></a></td>
   </tr>
-
   <tr>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture3.png">
-        <img
-          src="docs/assets/screenshots/Capture3.png"
-          alt="FlowCast media library with import, search and analysis controls"
-          width="100%"
-        >
-      </a>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture4.png">
-        <img
-          src="docs/assets/screenshots/Capture4.png"
-          alt="FlowCast playlist management interface"
-          width="100%"
-        >
-      </a>
-    </td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture3.png"><img src="docs/assets/screenshots/Capture3.png" alt="FlowCast media library with import, search and analysis controls" width="100%"></a></td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture4.png"><img src="docs/assets/screenshots/Capture4.png" alt="FlowCast playlist management interface" width="100%"></a></td>
   </tr>
-
   <tr>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture5.png">
-        <img
-          src="docs/assets/screenshots/Capture5.png"
-          alt="FlowCast programming and scheduling interface"
-          width="100%"
-        >
-      </a>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture6.png">
-        <img
-          src="docs/assets/screenshots/Capture6.png"
-          alt="FlowCast engine supervision and runtime settings"
-          width="100%"
-        >
-      </a>
-    </td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture5.png"><img src="docs/assets/screenshots/Capture5.png" alt="FlowCast programming and scheduling interface" width="100%"></a></td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture6.png"><img src="docs/assets/screenshots/Capture6.png" alt="FlowCast engine supervision and runtime settings" width="100%"></a></td>
   </tr>
-
   <tr>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture7.png">
-        <img
-          src="docs/assets/screenshots/Capture7.png"
-          alt="FlowCast audio transition and bridge settings"
-          width="100%"
-        >
-      </a>
-    </td>
-    <td width="50%" valign="top">
-      <a href="docs/assets/screenshots/Capture8.png">
-        <img
-          src="docs/assets/screenshots/Capture8.png"
-          alt="FlowCast station configuration and operational controls"
-          width="100%"
-        >
-      </a>
-    </td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture7.png"><img src="docs/assets/screenshots/Capture7.png" alt="FlowCast audio transition and bridge settings" width="100%"></a></td>
+    <td width="50%" valign="top"><a href="docs/assets/screenshots/Capture8.png"><img src="docs/assets/screenshots/Capture8.png" alt="FlowCast station configuration and operational controls" width="100%"></a></td>
   </tr>
 </table>
 
-<p align="center">
-  <em>Click any screenshot to open the full-resolution view.</em>
-</p>
+<p align="center"><em>Click any screenshot to open the full-resolution view.</em></p>
 
 See the [capture and publication procedure](docs/assets/screenshots/README.md).
 
@@ -283,21 +220,21 @@ See the [capture and publication procedure](docs/assets/screenshots/README.md).
 
 Community works without a paid licence, starts and broadcasts without a mandatory remote licence call, retains the essential broadcast path, and receives best-effort community support.
 
-Pro is optional and separately licensed. No undefined Pro feature is promised. Read [Community versus Pro](docs/community/community-vs-pro.md).
+Pro is optional and separately licensed. Read [Community versus Pro](docs/community/community-vs-pro.md).
 
 ---
 
 ## Installation
 
-**Current validated release: `0.1.0-rc.7`.**
+**Current validated release: `0.1.0-rc.8`.**
 
-**Requirements:** Linux amd64, Docker Engine, Docker Compose v2, 2 CPU cores, at least 4 GB RAM, 10 GB free disk plus media, and free TCP ports **8080** for the control/player proxy and **8010** for direct Icecast access.
+**Requirements:** Linux amd64, Docker Engine, Docker Compose v2, 2 CPU cores, at least 4 GB RAM, 10 GB free disk plus media/backups, and free TCP ports **8080** for the control/player proxy and **8010** for direct Icecast access.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.7/install.sh | sudo bash -s -- --version 0.1.0-rc.7
+curl -fsSL https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.8/install.sh | sudo bash -s -- --version 0.1.0-rc.8
 ```
 
-The tagged command installs the release declared in `version.env`. That file is the repository's single source of truth for the current FlowCast Community release. Automated validation blocks a pull request when the command above diverges from `version.env`.
+The tagged command installs the release declared in `version.env`. That file is the repository's single source of truth for the current FlowCast Community release.
 
 The installer writes `/opt/flowcast`, generates local credentials, pulls immutable versioned service images and waits for service health. It does not install Docker.
 
@@ -306,9 +243,9 @@ The installer writes `/opt/flowcast`, generates local credentials, pulls immutab
 ### Review the installer before execution
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.7/install.sh
+curl -fsSLO https://raw.githubusercontent.com/chourmovs/FlowCast-Community/v0.1.0-rc.8/install.sh
 less install.sh
-sudo bash install.sh --version 0.1.0-rc.7
+sudo bash install.sh --version 0.1.0-rc.8
 ```
 
 ---
@@ -321,7 +258,7 @@ sudo bash install.sh --version 0.1.0-rc.7
 4. Create or select a playlist.
 5. Configure its programming in the authenticated interface.
 6. Start playout when Docker Control is enabled.
-7. Listen at `/listen/test.mp3` through the control origin or `http://HOST:8010/test.mp3` directly.
+7. Listen through the control origin or through direct Icecast access.
 8. Verify the installation:
 
 ```bash
@@ -344,7 +281,7 @@ Create a backup before changing versions:
 
 ```bash
 sudo /opt/flowcast/scripts/community/backup.sh
-sudo /opt/flowcast/scripts/community/update.sh --version 0.1.0-rc.7
+sudo /opt/flowcast/scripts/community/update.sh --version 0.1.0-rc.8
 sudo /opt/flowcast/scripts/community/doctor.sh
 ```
 
@@ -365,12 +302,14 @@ flowchart TD
   A --> BL[Bliss similarity]
   E -->|audio| I[Icecast distribution]
   I --> L[Listeners]
+  I -->|access log| ST[Station statistics]
   DB[(Catalog, settings, history)] --> C
+  BK[(Backups)] --> C
   M[(Operator media)] --> A
   M --> E
 ```
 
-Control, orchestration, analysis, audio playout, distribution and named-volume storage are isolated roles. Details are in [Architecture](docs/community/architecture.md).
+Control, orchestration, analysis, audio playout, distribution and named-volume storage are isolated roles. Details are in [Architecture](docs/community/architecture.md) and [Runtime contract](docs/community/runtime-contract.md).
 
 ---
 
@@ -379,7 +318,7 @@ Control, orchestration, analysis, audio playout, distribution and named-volume s
 | Community | Pro |
 | --- | --- |
 | Autonomous broadcast path; no paid licence or mandatory licensing service | Optional, separate commercial licence |
-| Essential control, scheduling, playout, streaming and operations | May add separately documented advanced functions or services |
+| Control, scheduling, playout, streaming, public widgets, statistics and backup/restore | May add separately documented advanced functions or services |
 | Best-effort community support | Commercial terms apply only when explicitly offered |
 | Continues operating if an optional Pro licensing service is unavailable | Pro entitlement failure must not interrupt Community broadcasting |
 
@@ -387,9 +326,9 @@ Control, orchestration, analysis, audio playout, distribution and named-volume s
 
 ## Documentation
 
-- **Getting started:** [Quick start](docs/community/quick-start.md), [first broadcast](docs/how-to/first-broadcast.md)
+- **Getting started:** [Quick start](docs/community/quick-start.md), [RC8 notes](docs/community/rc8.md), [first broadcast](docs/how-to/first-broadcast.md)
 - **Broadcasting:** [Import music](docs/how-to/import-music.md), [playlists](docs/how-to/create-playlist.md), [programming](docs/how-to/schedule-programming.md)
-- **Operations:** [Backup, update and rollback](docs/how-to/backup-update-rollback.md), [Docker Control](docs/how-to/docker-control.md)
+- **Operations:** [Backup and restore](docs/community/backup-restore.md), [backup/update/rollback](docs/how-to/backup-update-rollback.md), [Docker Control](docs/how-to/docker-control.md)
 - **Security:** [Security policy](SECURITY.md), [reverse proxy and TLS](docs/how-to/reverse-proxy-tls.md)
 - **Architecture:** [System architecture](docs/community/architecture.md), [runtime contract](docs/community/runtime-contract.md)
 - **Troubleshooting:** [Stream troubleshooting](docs/how-to/troubleshoot-stream.md), [known limitations](docs/community/known-limitations.md)
@@ -404,7 +343,7 @@ The current repository release is declared only in:
 
 ```env
 # version.env
-FLOWCAST_VERSION=0.1.0-rc.7
+FLOWCAST_VERSION=0.1.0-rc.8
 ```
 
 Runtime configuration examples such as `.env.example` do not define the release version.

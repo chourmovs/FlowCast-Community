@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import FeaturePillars from '../components/FeaturePillars.astro';
+import Rc8Highlights from '../components/Rc8Highlights.astro';
 import ProductShowcase from '../components/ProductShowcase.astro';
 import CompactInstall from '../components/CompactInstall.astro';
 import { site } from '../config/site';
@@ -28,12 +29,39 @@ const structuredData = {
 <BaseLayout title="FlowCast Radio Automation — Playout without Liquidsoap" description={site.description} structuredData={structuredData}>
   <Hero />
   <FeaturePillars />
+  <Rc8Highlights />
   <ProductShowcase />
   <section class="editions container" aria-labelledby="editions-title">
-    <div class="section-heading compact"><p class="eyebrow">COMMUNITY + PRO</p><h2 id="editions-title">Community stays autonomous. Pro remains separate.</h2><p>Broadcasting does not depend on a paid licence server or a configured Pro service.</p></div>
+    <div class="section-heading compact">
+      <p class="eyebrow">COMMUNITY + PRO</p>
+      <h2 id="editions-title">Community stays autonomous. Pro remains separate.</h2>
+      <p>Broadcasting does not depend on a paid licence server or a configured Pro service.</p>
+    </div>
     <div class="edition-compare">
-      <article><span class="edition-label">Community · {flowcastVersion}</span><h3>Included broadcast path</h3><ul><li>Autonomous broadcast path</li><li>No paid licence required to broadcast</li><li>Scheduling and BPM-aware selection</li><li>Rust playout and Icecast</li><li>Diagnostics, backup and restore</li></ul><a class="section-link" href={withBase('community-vs-pro')}>Compare editions →</a></article>
-      <article><span class="edition-label pro">Pro · separately licensed</span><h3>Optional documented capabilities</h3><ul><li>Bliss acoustic similarity</li><li>Advanced documented programming strategies</li><li>Separately licensed operation</li></ul><a class="section-link" href={withBase('community-vs-pro')}>Review boundaries →</a></article>
+      <article>
+        <span class="edition-label">Community · {flowcastVersion}</span>
+        <h3>Included broadcast path</h3>
+        <ul>
+          <li>Autonomous broadcast path</li>
+          <li>No paid licence required to broadcast</li>
+          <li>Scheduling and BPM-aware selection</li>
+          <li>Rust playout and Icecast</li>
+          <li>Public station pages and embeddable widgets</li>
+          <li>Station statistics and history</li>
+          <li>Essential/Full backup and transactional restore</li>
+        </ul>
+        <a class="section-link" href={withBase('community-vs-pro')}>Compare editions →</a>
+      </article>
+      <article>
+        <span class="edition-label pro">Pro · separately licensed</span>
+        <h3>Optional documented capabilities</h3>
+        <ul>
+          <li>Bliss acoustic similarity</li>
+          <li>Advanced documented programming strategies</li>
+          <li>Separately licensed operation</li>
+        </ul>
+        <a class="section-link" href={withBase('community-vs-pro')}>Review boundaries →</a>
+      </article>
     </div>
     <p class="autonomy-note">Community continues broadcasting independently when Pro is not configured or unavailable.</p>
   </section>

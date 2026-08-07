@@ -116,6 +116,50 @@ class RuntimeContractTests(unittest.TestCase):
             )
         )
 
+    def test_rc8_control_mounts_are_required(self):
+        broken = deepcopy(self.main)
+
+        broken["services"]["control"]["volumes"] = [
+            volume
+            for volume in broken["services"]["control"]["volumes"]
+            if volume.get("target") != "/data/flowcast-backups"
+        ]
+
+        errors = RUNTIME_CONTRACT.audit(
+            broken,
+            self.override,
+            self.source,
+            self.images,
+        )
+
+        self.assertTrue(
+            any(
+                "/data/flowcast-backups" in error
+                for error in errors
+            )
+        )
+
+    def test_statistics_log_mount_must_be_read_only(self):
+        broken = deepcopy(self.main)
+
+        for volume in broken["services"]["control"]["volumes"]:
+            if volume.get("target") == "/data/icecast":
+                volume["read_only"] = False
+
+        errors = RUNTIME_CONTRACT.audit(
+            broken,
+            self.override,
+            self.source,
+            self.images,
+        )
+
+        self.assertTrue(
+            any(
+                "Icecast-log mount must be read-only" in error
+                for error in errors
+            )
+        )
+
 
 class ReleaseArchiveRuntimeTests(unittest.TestCase):
     def test_release_archive_contains_current_runtime(self):
@@ -263,6 +307,28 @@ class ReleaseArchiveRuntimeTests(unittest.TestCase):
             compose,
         )
 
+        # RC8 runtime additions.
+        self.assertIn(
+            "flowcast-backups:/data/flowcast-backups",
+            compose,
+        )
+        self.assertIn(
+            "icecast-logs:/data/icecast:ro",
+            compose,
+        )
+        self.assertIn(
+            "icecast-logs:/data/icecast",
+            compose,
+        )
+        self.assertIn(
+            "FLOWCAST_STATISTICS_SESSION_RETENTION_DAYS",
+            compose,
+        )
+        self.assertIn(
+            "FLOWCAST_STATISTICS_SAMPLE_RETENTION_DAYS",
+            compose,
+        )
+
         self.assertEqual(
             compose,
             (
@@ -299,6 +365,44 @@ class ReleaseArchiveRuntimeTests(unittest.TestCase):
         self.assertIn(
             "FLOWCAST_DOCKER_GID",
             override,
+        )
+
+    def test_rc8_runtime_source_contract(self):
+        source = (
+            ROOT / "compose.yml"
+        ).read_text(
+            encoding="utf-8"
+        )
+
+        required = (
+            "flowcast-backups:/data/flowcast-backups",
+            "icecast-logs:/data/icecast:ro",
+            "icecast-logs:/data/icecast",
+            "FLOWCAST_STATISTICS_SESSION_RETENTION_DAYS",
+            "FLOWCAST_STATISTICS_SAMPLE_RETENTION_DAYS",
+        )
+
+        for fragment in required:
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, source)
+
+        env_example = (
+            ROOT / ".env.example"
+        ).read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn(
+            "FLOWCAST_STATISTICS_SESSION_RETENTION_DAYS=365",
+            env_example,
+        )
+        self.assertIn(
+            "FLOWCAST_STATISTICS_SAMPLE_RETENTION_DAYS=90",
+            env_example,
+        )
+        self.assertNotIn(
+            "FLOWCAST_VERSION",
+            env_example,
         )
 
     def test_stream_smoke_has_success_and_failure_gates(

@@ -1,0 +1,106 @@
+---
+import { flowcastVersion } from '../lib/version';
+---
+
+<section class="rc8-highlights container" aria-labelledby="rc8-title">
+  <div class="section-heading compact">
+    <p class="eyebrow">NEW IN {flowcastVersion}</p>
+    <h2 id="rc8-title">Operate, observe and publish the station from the same stack.</h2>
+    <p>
+      RC8 extends the broadcast core with portable backups, real audience statistics
+      and listener-facing embeds — without adding a Liquidsoap layer.
+    </p>
+  </div>
+
+  <div class="rc8-grid">
+    <article>
+      <span>01</span>
+      <h3>Backup & Restore</h3>
+      <p>Essential or Full <code>.fcbak</code> archives, resumable uploads and transactional restore with rollback safeguards.</p>
+      <small>Media-aware · resumable · persistent jobs</small>
+    </article>
+
+    <article>
+      <span>02</span>
+      <h3>Station Statistics</h3>
+      <p>Live audience, history, trends, countries, players and devices from station-scoped Icecast activity.</p>
+      <small>Real-time · reports · local privacy</small>
+    </article>
+
+    <article>
+      <span>03</span>
+      <h3>Embeddable Widgets</h3>
+      <p>Publish a player, recently played, upcoming tracks or listener count on an external site with copyable iframe snippets.</p>
+      <small>Public-safe · self-contained · iframe-ready</small>
+    </article>
+
+    <article>
+      <span>04</span>
+      <h3>Three Player Layouts</h3>
+      <p>Normal, Compact and Minimal are genuinely distinct player structures designed for different integration footprints.</p>
+      <small>Normal · Compact · Minimal</small>
+    </article>
+  </div>
+</section>
+
+<style>
+  .rc8-highlights {
+    padding-block: var(--section-space);
+  }
+
+  .rc8-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .rc8-grid article {
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background:
+      linear-gradient(160deg, rgba(34, 211, 238, .055), transparent 42%),
+      var(--surface);
+    padding: 1.25rem;
+  }
+
+  .rc8-grid article > span {
+    display: inline-flex;
+    margin-bottom: .55rem;
+    color: var(--cyan-bright);
+    font: 800 .72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .12em;
+  }
+
+  .rc8-grid h3 {
+    margin: .25rem 0 .65rem;
+  }
+
+  .rc8-grid p {
+    color: var(--text-secondary);
+    font-size: .94rem;
+  }
+
+  .rc8-grid code {
+    color: var(--violet-soft);
+  }
+
+  .rc8-grid small {
+    display: block;
+    margin-top: 1rem;
+    color: var(--muted);
+    font: 700 .72rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  @media (max-width: 1000px) {
+    .rc8-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .rc8-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -5,6 +5,7 @@
 ## Getting started
 
 - [Quick start](community/quick-start.md)
+- [RC8 highlights and runtime notes](community/rc8.md)
 - [Supported platforms](community/supported-platforms.md)
 - [First broadcast](how-to/first-broadcast.md)
 - [Configuration](community/configuration.md)
